@@ -1,337 +1,699 @@
 <!DOCTYPE html>
 <html lang="en" class="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expression Sharpener (Offline)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        body { transition: background-color 0.3s ease; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expression Sharpener (Offline)</title>
 
-        /* Highlight Styles - Sharp Badges */
-        .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
-        .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
-        .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
-        .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
-        .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons (optional). If it fails to load (blocked/offline), the app will still work. -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-        /* Dark Mode */
-        .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
-        .dark .hl-passive { background-color: rgba(127, 29, 29, 0.9); color: #fecaca; border-color: #f87171; }
-        .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
-        .dark .hl-repeat { background-color: rgba(88, 28, 135, 0.9); color: #e9d5ff; border-color: #c084fc; }
-        .dark .hl-stop { background-color: rgba(113, 63, 18, 0.9); color: #fef08a; border-color: #facc15; }
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
 
-        aside { height: 100vh; position: sticky; top: 0; }
-        @media (max-width: 768px) { aside { height: auto; position: relative; } }
-    </style>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { transition: background-color 0.3s ease; }
+
+    /* Weakness Colour Coding
+       Blue = bad starts | Red = passive/auxiliaries | Green = basic words
+       Purple = repetition | Yellow = stop words */
+    .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+    .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+    .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+    .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+    .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+
+    /* Dark mode variants */
+    .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
+    .dark .hl-passive { background-color: rgba(127, 29, 29, 0.9); color: #fecaca; border-color: #f87171; }
+    .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
+    .dark .hl-repeat { background-color: rgba(88, 28, 135, 0.9); color: #e9d5ff; border-color: #c084fc; }
+    .dark .hl-stop { background-color: rgba(113, 63, 18, 0.9); color: #fef08a; border-color: #facc15; }
+  </style>
 </head>
 <body class="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
 
-    <div class="flex flex-col md:flex-row min-h-screen">
-        
-        <!-- SIDEBAR -->
-        <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8 shadow-sm z-30">
-            <div>
-                <h1 class="text-2xl font-black text-blue-600 flex items-center gap-2">
-                    <i data-lucide="pencil-line"></i> Sharpener
-                </h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Offline Database Mode</p>
-            </div>
+<div class="flex flex-col md:flex-row min-h-screen">
 
-            <div class="space-y-6">
-                <!-- Mode Switch -->
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-2 block">Writing Mode</label>
-                    <div class="flex p-1 bg-white dark:bg-slate-800 rounded-xl gap-1 border border-slate-200 dark:border-slate-700">
-                        <button id="modeNarrative" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-md transition-all">Narrative</button>
-                        <button id="modeAnalytical" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Analytical</button>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <button id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                        <i data-lucide="shuffle" class="w-5 h-5"></i> Get New Example
-                    </button>
-                    <button id="btnReveal" disabled class="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border-2 border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 opacity-30 cursor-not-allowed">
-                        <i data-lucide="eye" class="w-5 h-5"></i> Reveal Models
-                    </button>
-                    <button id="btnReset" class="w-full py-3 text-slate-400 hover:text-red-500 font-bold flex items-center justify-center gap-2 transition-colors">
-                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
-                    </button>
-                </div>
-            </div>
-
-            <!-- Legend -->
-            <div class="mt-auto border-t border-slate-200 dark:border-slate-800 pt-6">
-                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest text-center">Highlight Key</h3>
-                <div class="grid grid-cols-1 gap-3 text-xs font-bold px-2">
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-blue-500 shadow-sm"></div> Noun Start</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-red-500 shadow-sm"></div> Passive Voice</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-green-500 shadow-sm"></div> Basic Verb</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-purple-500 shadow-sm"></div> Repetition</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-yellow-500 shadow-sm"></div> Stop Words</div>
-                </div>
-                
-                <button id="themeToggle" class="w-full mt-8 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-xs font-bold shadow-sm transition-all hover:border-blue-400">
-                    <i data-lucide="moon" id="themeIcon"></i> <span id="themeLabel">Dark Mode</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- MAIN WORKSPACE -->
-        <main class="flex-1 p-6 md:p-12 space-y-10 overflow-y-auto bg-white dark:bg-slate-950">
-            
-            <!-- Junior Card -->
-            <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Year 5 Junior Draft
-                    </span>
-                    <button class="copy-btn text-slate-400 hover:text-blue-500 transition-colors" data-target="jrContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
-                </div>
-                <div id="jrContent" class="p-10 md:p-14 min-h-[200px]">
-                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
-                        <i data-lucide="book-open" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight text-slate-900 dark:text-white">Ready to start.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Senior Card -->
-            <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-500 flex items-center gap-2">
-                        <i data-lucide="book" class="w-4 h-4"></i> Year 10 Senior Draft
-                    </span>
-                    <button class="copy-btn text-slate-400 hover:text-purple-500 transition-colors" data-target="srContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
-                </div>
-                <div id="srContent" class="p-10 md:p-14 min-h-[200px]">
-                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
-                        <i data-lucide="book-open" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight text-center">Ready to start.</p>
-                    </div>
-                </div>
-            </section>
-
-        </main>
+  <!-- SIDEBAR -->
+  <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8">
+    <div>
+      <h1 class="text-2xl font-black text-blue-600 flex items-center gap-2">
+        <i data-lucide="pencil-line"></i> Sharpener
+      </h1>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Offline Version</p>
+      <p id="stats" class="text-[10px] font-bold text-slate-400 mt-2"></p>
+      <p id="iconWarn" class="hidden text-[10px] font-bold text-amber-600 mt-2">Icons unavailable (Lucide didn’t load). App still works.</p>
     </div>
 
-    <script>
-        // ==========================================
-        // DATABASE OF EXAMPLES (Add more here!)
-        // ==========================================
-        const database = {
-            Narrative: {
-                Year5: [
-                    {
-                        flawed: "<N>The</N> sun <B>went</B> down. <N>It</N> <P>was covered</P> by clouds. <N>The</N> boy <B>ran</B> fast. <N>He</N> <P>was scared</P> by <S>basically</S> everything. <N>He</N> <B>saw</B> a house. <N>It</N> <B>got</B> dark. <N>The</N> house <P>was made</P> of wood.",
-                        improved: "As twilight descended, ominous clouds swallowed the sun. Sprinting frantically, the boy felt fear clutching at his chest. Looming ahead, a wooden house emerged from the shadows, its silhouette darkening against the evening sky."
-                    },
-                    {
-                        flawed: "<N>She</N> <B>got</B> a present. <N>It</N> <P>was wrapped</P> in red paper. <N>She</N> <B>was</B> happy. <N>Then</N> <S>so</S> <N>she</N> <B>went</B> to open it. <N>It</N> <B>had</B> a puppy inside. <N>The</N> puppy <B>was</B> cute.",
-                        improved: "Clutching the crimson-wrapped gift, a surge of joy rushed through her veins. Eagerly tearing away the paper, she discovered a tiny, adorable puppy nestled within the box."
-                    },
-                    {
-                        flawed: "<N>The</N> treasure <P>was found</P> by pirates. <N>They</N> <B>were</B> excited. <N>It</N> <B>had</B> gold inside. <N>The</N> gold <P>was shiny</P>. <N>Then</N> <N>they</N> <B>got</B> in a fight. <N>The</N> fight <P>was stopped</P> by the captain.",
-                        improved: "Discovering the treasure, the pirates erupted in excitement at the sight of the gleaming gold. However, greed quickly ignited a brawl, which was only quelled by the captain's roaring command."
-                    },
-                    {
-                        flawed: "<N>He</N> <B>went</B> to the forest. <N>It</N> <P>was filled</P> with trees. <N>He</N> <B>saw</B> a bear. <N>The</N> bear <B>ran</B> at him. <N>He</N> <B>got</B> scared. <N>So</N> <N>he</N> <B>ran</B> away <S>very</S> fast.",
-                        improved: "Venturing into the dense woodland, he froze upon spotting a massive bear. When the beast charged, panic seized him, forcing him to sprint away in a desperate bid for safety."
-                    },
-                    {
-                        flawed: "<N>The</N> storm <B>got</B> loud. <N>It</N> <P>was heard</P> by everyone. <N>The</N> rain <B>came</B> down hard. <N>It</N> <P>was flooding</P> the street. <N>Then</N> the wind <B>blew</B> a tree over.",
-                        improved: "Thunder roared, echoing through the neighborhood as the rain poured relentlessly. Floodwaters rapidly claimed the street, and a violent gust finally toppled an ancient tree."
-                    }
-                ],
-                Year10: [
-                    {
-                        flawed: "<N>The</N> protagonist <P>is shown</P> to be isolated. <N>He</N> <B>goes</B> into the wild. <N>This</N> <P>is done</P> to escape society. <N>He</N> <B>sees</B> nature as pure. <N>It</N> <P>is represented</P> by the snow. <N>The</N> snow <S>really</S> shows his cold feelings.",
-                        improved: "Seeking refuge from societal constraints, the protagonist retreats into the wilderness, viewing nature as a sanctuary of purity. The relentless snow mirrors his internal detachment, symbolizing a profound emotional frost."
-                    },
-                    {
-                        flawed: "<N>The</N> conflict <P>is caused</P> by greed. <N>It</N> <B>makes</B> the characters fight. <N>They</N> <B>get</B> angry <S>very</S> quickly. <N>This</N> <P>is seen</P> in the climax. <N>The</N> climax <P>is where</P> everything goes wrong.",
-                        improved: "Fueled by avarice, the conflict drives the characters toward inevitable violence. This destructive dynamic culminates in the climax, where their simmering anger erupts into catastrophic failure."
-                    },
-                    {
-                        flawed: "<N>She</N> <B>has</B> a lot of power. <N>This</N> <P>is used</P> to control others. <N>The</N> others <P>are scared</P> of her. <N>They</N> <B>do</B> what she says. <N>This</N> <B>shows</B> that power corrupts.",
-                        improved: "Wielding immense authority, she manipulates those around her through fear. Her dominance illustrates the corrupting influence of unchecked power, forcing subordinates into submission."
-                    },
-                    {
-                        flawed: "<N>The</N> setting <B>is</B> dark. <N>It</N> <P>is described</P> as gloomy. <N>This</N> <B>makes</B> the mood sad. <N>The</N> sadness <P>is felt</P> by the reader. <N>It</N> <B>shows</B> there is no hope.",
-                        improved: "Permeated by gloom, the dark setting establishes a pervasive melancholic mood. This atmosphere envelops the reader, effectively conveying a sense of utter hopelessness."
-                    },
-                    {
-                        flawed: "<N>He</N> <B>makes</B> a bad choice. <N>This</N> <P>is caused</P> by his pride. <N>His</N> pride <B>is</B> his fatal flaw. <N>It</N> <B>leads</B> to his death. <N>The</N> death <P>is tragic</P>.",
-                        improved: "Driven by hubris, his fatal decision seals his doom. This tragic downfall serves as a stark reminder of how unchecked pride inevitably leads to destruction."
-                    }
-                ]
-            },
-            Analytical: {
-                Year5: [
-                    {
-                        flawed: "<N>The</N> author <B>uses</B> similes. <N>They</N> <P>are used</P> to describe the dog. <N>The</N> dog <B>is</B> like a wolf. <N>This</N> <B>shows</B> the dog is scary. <N>It</N> <B>makes</B> us feel scared too.",
-                        improved: "Employing similes, the author compares the dog to a wolf to emphasise its ferocity. This technique effectively instills fear in the reader by highlighting the animal's predatory nature."
-                    },
-                    {
-                        flawed: "<N>The</N> book <B>is</B> about friendship. <N>It</N> <B>shows</B> two friends. <N>They</N> <B>help</B> each other. <N>This</N> <P>is important</P> because <S>basically</S> friends are good. <N>The</N> ending <B>is</B> happy.",
-                        improved: "Exploring the theme of friendship, the narrative demonstrates the value of mutual support. By depicting the characters' unwavering loyalty, the story underscores the importance of connection, leading to a heartwarming conclusion."
-                    },
-                    {
-                        flawed: "<N>The</N> writer <B>says</B> plastic is bad. <N>It</N> <P>is dumped</P> in the ocean. <N>This</N> <B>hurts</B> the turtles. <N>We</N> <B>should</B> stop using it. <N>It</N> <B>is</B> a big problem.",
-                        improved: "Highlighting the dangers of pollution, the writer argues that plastic waste devastates marine life, particularly turtles. Consequently, immediate action is required to eliminate this environmental crisis."
-                    },
-                    {
-                        flawed: "<N>The</N> poem <B>has</B> rhyming words. <N>They</N> <B>make</B> it sound fun. <N>The</N> fun <P>is felt</P> when reading. <N>It</N> <B>is</B> about a cat. <N>The</N> cat <B>is</B> silly.",
-                        improved: "Utilizing rhyme, the poem creates a playful rhythm that enhances the reader's enjoyment. This lighthearted structure perfectly complements the subject matter of the comical cat."
-                    },
-                    {
-                        flawed: "<N>The</N> character <B>is</B> brave. <N>He</N> <B>saves</B> the day. <N>This</N> <B>shows</B> he is a hero. <N>Heroes</N> <P>are liked</P> by people. <N>He</N> <B>does</B> good things.",
-                        improved: "Demonstrating immense courage, the character's heroic actions save the day. His selflessness defines him as a true hero, earning the admiration of the audience."
-                    }
-                ],
-                Year10: [
-                    {
-                        flawed: "<N>The</N> author <B>uses</B> metaphors. <N>This</N> <P>is done</P> to show depression. <N>The</N> depression <P>is compared</P> to a black hole. <N>It</N> <B>sucks</B> everything in. <N>This</N> <B>makes</B> the reader understand the pain.",
-                        improved: "Through the metaphor of a black hole, the author vividly depicts the consuming nature of depression. This comparison elucidates the protagonist's internal void, allowing the reader to grasp the gravity of their suffering."
-                    },
-                    {
-                        flawed: "<N>The</N> play <B>shows</B> ambition. <N>It</N> <P>is shown</P> through Macbeth. <N>He</N> <B>kills</B> the king. <N>This</N> <B>is</B> bad. <N>It</N> <B>leads</B> to guilt. <N>The</N> guilt <B>makes</B> him crazy.",
-                        improved: "Macbeth serves as a vessel for the exploration of unchecked ambition. His regicide triggers a psychological spiral, where overwhelming guilt eventually fractures his sanity."
-                    },
-                    {
-                        flawed: "<N>The</N> text <B>critiques</B> society. <N>It</N> <B>says</B> money is evil. <N>This</N> <P>is seen</P> in the rich characters. <N>They</N> <B>are</B> mean. <N>The</N> poor people <P>are treated</P> badly.",
-                        improved: "Critiquing societal materialism, the text posits that wealth breeds moral decay. This is exemplified by the cruelty of the affluent characters, contrasting sharply with the oppression faced by the impoverished."
-                    },
-                    {
-                        flawed: "<N>The</N> imagery <B>is</B> violent. <N>It</N> <B>uses</B> words like blood. <N>This</N> <P>is used</P> to shock us. <N>The</N> shock <B>makes</B> us listen. <N>It</N> <B>shows</B> the horror of war.",
-                        improved: "Deploying visceral, violent imagery, the text confronts the reader with the brutality of conflict. This shock tactic forces an acknowledgement of war's horrors, stripping away any romanticized notions of battle."
-                    },
-                    {
-                        flawed: "<N>The</N> ending <B>is</B> ambiguous. <N>It</N> <B>doesn't</B> say what happened. <N>This</N> <B>makes</B> us think. <N>We</N> <B>have</B> to guess. <N>It</N> <B>is</B> a clever trick.",
-                        improved: "Concluding with ambiguity, the narrative refuses to offer a definitive resolution. This open-endedness compels the reader to engage in interpretation, lingering on the thematic questions raised."
-                    }
-                ]
-            }
-        };
+    <div>
+      <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-2 block">Writing Mode</label>
+      <div class="flex p-1 bg-white dark:bg-slate-800 rounded-xl gap-1 border border-slate-200 dark:border-slate-700">
+        <button id="modeNarrative" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white">Narrative</button>
+        <button id="modeAnalytical" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600 dark:hover:text-blue-400">Analytical</button>
+      </div>
+    </div>
 
-        // ==========================================
-        // APP LOGIC
-        // ==========================================
-        
-        let currentMode = "Narrative";
-        let currentJr = null;
-        let currentSr = null;
+    <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+      <button id="btnPrev" class="w-full bg-slate-200 dark:bg-slate-800 py-3 rounded-xl font-bold">Previous</button>
+      <button id="btnNext" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Next</button>
+      <button id="btnRandom" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold">Random</button>
+    </div>
 
-        lucide.createIcons();
+    <!-- Legend -->
+    <div class="border-t border-slate-200 dark:border-slate-800 pt-6">
+      <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest text-center">Highlight Key</h3>
+      <div class="grid grid-cols-1 gap-3 text-xs font-bold px-2">
+        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-blue-500 shadow-sm"></div> Bad start</div>
+        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-red-500 shadow-sm"></div> Passive / auxiliary</div>
+        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-green-500 shadow-sm"></div> Basic word</div>
+        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-purple-500 shadow-sm"></div> Repetition</div>
+        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-yellow-400 shadow-sm"></div> Stop word</div>
+      </div>
+    </div>
 
-        // Theme Toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            const themeIcon = document.getElementById('themeIcon');
-            const themeLabel = document.getElementById('themeLabel');
-            themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-            themeLabel.innerText = isDark ? 'Light Mode' : 'Dark Mode';
-            lucide.createIcons();
-        });
+    <button id="themeToggle" class="mt-auto py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold">
+      Toggle Theme
+    </button>
+  </aside>
 
-        // Mode Switching
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => {
-                    b.className = "mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600 transition-all";
-                });
-                btn.className = "mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-md transition-all";
-                currentMode = btn.innerText;
-            });
-        });
+  <!-- MAIN -->
+  <main class="flex-1 p-8 space-y-10">
 
-        // Tag Parser
-        const formatText = (text) => {
-            if (!text) return "";
-            return text
-                .replace(/<N>(.*?)<\/N>/g, '<span class="hl-noun">$1</span>')
-                .replace(/<P>(.*?)<\/P>/g, '<span class="hl-passive">$1</span>')
-                .replace(/<B>(.*?)<\/B>/g, '<span class="hl-basic">$1</span>')
-                .replace(/<R>(.*?)<\/R>/g, '<span class="hl-repeat">$1</span>')
-                .replace(/<S>(.*?)<\/S>/g, '<span class="hl-stop">$1</span>');
-        };
+    <section class="bg-white dark:bg-slate-900 rounded-3xl border p-8 shadow">
+      <h2 class="font-black text-blue-500 mb-4">Year 5</h2>
+      <div id="jrContent" class="text-2xl md:text-3xl leading-relaxed"></div>
+    </section>
 
-        // Generation Logic (Random Selection)
-        document.getElementById('btnGenerate').addEventListener('click', () => {
-            const jrDiv = document.getElementById('jrContent');
-            const srDiv = document.getElementById('srContent');
-            
-            // Get random items
-            const jrList = database[currentMode].Year5;
-            const srList = database[currentMode].Year10;
-            
-            currentJr = jrList[Math.floor(Math.random() * jrList.length)];
-            currentSr = srList[Math.floor(Math.random() * srList.length)];
+    <section class="bg-white dark:bg-slate-900 rounded-3xl border p-8 shadow">
+      <h2 class="font-black text-purple-500 mb-4">Year 10</h2>
+      <div id="srContent" class="text-2xl md:text-3xl leading-relaxed"></div>
+    </section>
 
-            jrDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(currentJr.flawed)}</div>`;
-            srDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(currentSr.flawed)}</div>`;
+    <!-- Built-in tests (developer console) -->
+    <details class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
+      <summary class="font-bold text-slate-600 dark:text-slate-300 cursor-pointer">Diagnostics</summary>
+      <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+        Open DevTools Console to see test results. Tests run automatically on load.
+      </div>
+    </details>
 
-            const revealBtn = document.getElementById('btnReveal');
-            revealBtn.disabled = false;
-            revealBtn.classList.remove('opacity-30', 'cursor-not-allowed');
-        });
+  </main>
+</div>
 
-        // Reveal Logic
-        document.getElementById('btnReveal').addEventListener('click', () => {
-            const revealBtn = document.getElementById('btnReveal');
-            revealBtn.disabled = true;
+<script>
+  // -----------------------------
+  // Safe Lucide init
+  // -----------------------------
+  function initIconsSafe() {
+    try {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      } else {
+        const warn = document.getElementById('iconWarn');
+        if (warn) warn.classList.remove('hidden');
+      }
+    } catch (_) {
+      const warn = document.getElementById('iconWarn');
+      if (warn) warn.classList.remove('hidden');
+    }
+  }
 
-            const markup = (text) => `<div class="mt-12 pt-12 border-t-2 border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-700 text-left"><span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-full mb-6 tracking-widest"><i data-lucide="check-circle" class="w-3 h-3"></i> Model Improvement</span><p class="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 font-medium">${text}</p></div>`;
+  let currentMode = "Narrative";
+  let index = 0;
 
-            document.getElementById('jrContent').innerHTML += markup(currentJr.improved);
-            document.getElementById('srContent').innerHTML += markup(currentSr.improved);
-            lucide.createIcons();
-        });
+  // -----------------------------
+  // Exemplar generation (offline)
+  // -----------------------------
 
-        document.getElementById('btnReset').addEventListener('click', () => location.reload());
+  const juniorNarrativeThemes = [
+    "football trial","camping trip","school assembly","lost dog","science fair","new student","rainstorm","library incident","birthday party","art competition",
+    "class debate","swimming carnival","group project","detention","school excursion","bus ride","soccer final","music audition","market day","neighbour argument"
+  ];
 
-        // Copy functionality
-        document.querySelectorAll('.copy-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.getAttribute('data-target');
-                const targetEl = document.getElementById(targetId);
-                // Extract only text, remove the Model Improvement part if present
-                let text = targetEl.innerText;
-                if(text.includes('Model Improvement')) {
-                    text = text.split('Model Improvement')[0].trim();
-                }
-                
-                const temp = document.createElement('textarea');
-                temp.value = text;
-                document.body.appendChild(temp);
-                temp.select();
-                document.execCommand('copy');
-                document.body.removeChild(temp);
-                
-                const icon = btn.querySelector('i');
-                icon.setAttribute('data-lucide', 'check');
-                lucide.createIcons();
-                setTimeout(() => { icon.setAttribute('data-lucide', 'copy'); lucide.createIcons(); }, 2000);
-            });
-        });
-    </script>
+  // Analytical exemplars reference real films/novels/plays.
+  const juniorAnalyticalThemes = [
+    { title: "Enola Holmes", type: "film", focus: "character", angle: "how Enola shows courage and independence" },
+    { title: "Spider-Man: Into the Spider-Verse", type: "film", focus: "theme", angle: "how Miles learns responsibility" },
+    { title: "Wonder", type: "novel", focus: "theme", angle: "how kindness changes a community" },
+    { title: "Holes", type: "novel", focus: "plot", angle: "how setbacks build resilience" },
+    { title: "Matilda", type: "novel", focus: "character", angle: "how Matilda challenges unfair adults" },
+    { title: "The Lion King", type: "film", focus: "theme", angle: "how guilt and identity drive Simba" },
+    { title: "Harry Potter and the Philosopher’s Stone", type: "novel", focus: "setting", angle: "how Hogwarts feels welcoming and strange" },
+    { title: "Finding Nemo", type: "film", focus: "character", angle: "how Marlin changes as a parent" },
+    { title: "The BFG", type: "novel", focus: "relationship", angle: "how Sophie and the BFG build trust" },
+    { title: "The Boy in the Striped Pyjamas", type: "novel", focus: "theme", angle: "how innocence shapes the ending" },
+    { title: "The Giver", type: "novel", focus: "theme", angle: "how rules control a society" },
+    { title: "Zootopia", type: "film", focus: "theme", angle: "how bias affects choices" },
+    { title: "Bridge to Terabithia", type: "novel", focus: "theme", angle: "how imagination helps characters cope" },
+    { title: "The Invention of Hugo Cabret", type: "novel", focus: "symbol", angle: "how the automaton represents hope" },
+    { title: "Storm Boy", type: "novel", focus: "setting", angle: "how the coast shapes mood" },
+    { title: "Bluey", type: "TV", focus: "message", angle: "how play teaches real lessons" },
+    { title: "The Outsiders", type: "novel", focus: "theme", angle: "how belonging and conflict are shown" },
+    { title: "The Hobbit", type: "novel", focus: "character", angle: "how Bilbo grows through risk" },
+    { title: "Charlotte’s Web", type: "novel", focus: "theme", angle: "how friendship is shown through actions" },
+    { title: "The Secret Garden", type: "novel", focus: "theme", angle: "how change and healing are shown" }
+  ];
+
+  const seniorNarrativeThemes = [
+    "corporate restructure","family argument","sporting failure","online conflict","job interview","community protest","relationship breakdown","public speech","exam pressure","team collapse",
+    "unexpected resignation","legal dispute","media scandal","board meeting","failed launch","ethical dilemma","hospital waiting room","airport farewell","property dispute","political rally"
+  ];
+
+  const seniorAnalyticalThemes = [
+    { title: "Romeo and Juliet", type: "play", focus: "theme", angle: "how conflict and impulsiveness drive tragedy" },
+    { title: "Macbeth", type: "play", focus: "character", angle: "how ambition corrupts decision-making" },
+    { title: "The Crucible", type: "play", focus: "theme", angle: "how fear spreads through a community" },
+    { title: "Jasper Jones", type: "novel", focus: "theme", angle: "how prejudice shapes the town" },
+    { title: "To Kill a Mockingbird", type: "novel", focus: "theme", angle: "how justice is challenged" },
+    { title: "1984", type: "novel", focus: "theme", angle: "how language controls thinking" },
+    { title: "The Handmaid’s Tale", type: "novel", focus: "theme", angle: "how power controls bodies" },
+    { title: "The Great Gatsby", type: "novel", focus: "theme", angle: "how wealth creates illusion" },
+    { title: "Frankenstein", type: "novel", focus: "theme", angle: "how responsibility is avoided" },
+    { title: "The Hunger Games", type: "novel", focus: "theme", angle: "how spectacle manipulates people" },
+    { title: "The Hate U Give", type: "novel", focus: "theme", angle: "how voice becomes resistance" },
+    { title: "The Truman Show", type: "film", focus: "theme", angle: "how control and surveillance shape identity" },
+    { title: "Gattaca", type: "film", focus: "theme", angle: "how inequality is built into systems" },
+    { title: "Dead Poets Society", type: "film", focus: "theme", angle: "how conformity pressures students" },
+    { title: "The Merchant of Venice", type: "play", focus: "theme", angle: "how prejudice shapes judgment" },
+    { title: "Animal Farm", type: "novel", focus: "theme", angle: "how slogans replace truth" },
+    { title: "The Curious Incident of the Dog in the Night-Time", type: "novel", focus: "voice", angle: "how narration shapes reader trust" },
+    { title: "Othello", type: "play", focus: "theme", angle: "how jealousy is engineered" },
+    { title: "The Dressmaker", type: "film", focus: "theme", angle: "how gossip and power ruin lives" },
+    { title: "The Book Thief", type: "novel", focus: "theme", angle: "how words matter in wartime" }
+  ];
+
+  // Phrase banks: intentionally flawed (repetition, weak starts, auxiliaries, stop words, basic verbs)
+  const JN_open = [
+    "The day was meant to be normal, but it was not.",
+    "The morning started like any other and it felt easy at first.",
+    "The plan sounded simple in class, but it was harder in real life.",
+    "The whole thing was talked up all week and it was built up.",
+    "The bell went and the room was already noisy.",
+    "The teacher was calm, but the class was not.",
+    "The bus ride was quiet at first, but it did not stay quiet.",
+    "The oval looked normal, but it felt different today.",
+    "The line at the canteen was long and it was already frustrating.",
+    "The group was meant to work together, but it was awkward straight away."
+  ];
+
+  const JN_mid = [
+    "It was handled in a rushed way and it was messy, and the same point was said again and again.",
+    "He went over it in his head and he got stuck on the same detail, and he got more stressed.",
+    "They went along with it and they just did what was expected, but they were not really sure why.",
+    "It was meant to be simple but it got complicated and it got annoying, and it was repeated in their heads.",
+    "The instructions were read out and they were read out again, but the group still got confused.",
+    "There was a moment where everyone looked, and then everyone looked away, and it felt uncomfortable.",
+    "Then the small mistake was noticed and it was noticed again, so it started to feel bigger than it was.",
+    "The comments were made quietly, but they were still heard, and they made it worse.",
+    "It was said it would be fine, but it did not feel fine, and it kept feeling the same.",
+    "They tried to fix it quickly, but it was not fixed, and the problem stayed there."
+  ];
+
+  const JN_end = [
+    "Then it was explained as a lesson and it was said clearly, so the message felt obvious and basic.",
+    "The ending was accepted quickly and it was not explored much, so it felt unfinished.",
+    "There was a result and it was announced, and it was talked about again, and it was not very deep.",
+    "The outcome was called fair but it was not explained properly, so it felt a bit empty.",
+    "The class moved on fast and it was like it never happened, even though it did.",
+    "Then it was written down in the diary and it was left there, but the feeling stayed.",
+    "The apology was said and it was said again, but it still felt awkward.",
+    "The final bell went and it was a relief, but the day still felt messy.",
+    "The result was meant to feel good, but it was just okay and it was not exciting.",
+    "There was a quiet moment at the end and it was finally calm, but it did not fix everything."
+  ];
+
+  const JA_open = [
+    "The text is explained in a straightforward way and it is mostly summarised first.",
+    "The film is introduced and it is described as entertaining, so the point is simple.",
+    "The novel is talked about as meaningful and it is said to teach a lesson.",
+    "The story is presented as important and it is described as showing a message.",
+    "The main character is described as brave and it is said the audience should respect them.",
+    "The topic is introduced and it is claimed that the message matters.",
+    "The scene is mentioned early and it is treated as the key moment.",
+    "The writer says the text is powerful and it is explained in a basic way.",
+    "The film is described as emotional and it is said to make the viewer feel a lot.",
+    "The novel is introduced as inspiring and it is said to show growth."
+  ];
+
+  const JA_mid = [
+    "It is supported with an example, but it is not analysed deeply and it stays general.",
+    "The evidence is included and it is linked to the claim, but the explanation is surface level.",
+    "The technique is named and it is explained, but it is explained in a basic way.",
+    "The scene is described and it is described again, so it starts to sound repetitive.",
+    "It is said the character learns something, but it is not shown with detailed reasoning.",
+    "The language is called effective and it is said again, but it is not unpacked properly.",
+    "The example is mentioned, but it is rushed and it does not go into depth.",
+    "The point is made clearly, but it is too obvious and it is not very insightful.",
+    "It is explained simply and it is not connected to bigger ideas in a detailed way.",
+    "The paragraph keeps using the same words and it keeps saying the same point."
+  ];
+
+  const JA_end = [
+    "Then the point is restated so it is obvious, but it is not insightful.",
+    "The conclusion is clear and it is repeated, so it feels predictable.",
+    "There is a message and it is explained again, which makes it clear but not complex.",
+    "The final sentence tells the reader what to think and it does not explore alternatives.",
+    "The ending is summed up quickly and it is not challenged, so it stays basic.",
+    "Then it is said the lesson matters, but it is not developed further.",
+    "The idea is repeated one more time and it is left there.",
+    "The conclusion sounds confident, but it is still general and not detailed.",
+    "There is a final claim and it is repeated, which makes it clear but plain.",
+    "The paragraph finishes by repeating the same message and it does not add new detail."
+  ];
+
+  const SN_open = [
+    "The situation was framed as serious and it was treated as high stakes.",
+    "The pressure was present from the start and it was noticed straight away.",
+    "The event was described as significant and it was meant to feel urgent.",
+    "The conflict was introduced early and it was carried through the scene."
+  ];
+
+  const SN_mid = [
+    "It was suggested that change was coming, but it was not developed with subtle detail, and the same concerns were repeated.",
+    "He went over the same doubts and he repeated the same reasoning, so the tension stayed flat instead of rising.",
+    "There were decisions that were made and they were questioned, but they were not properly justified, and the logic stayed vague.",
+    "It was described in broad terms and it was explained again, which makes it sound controlled rather than real."
+  ];
+
+  const SN_end = [
+    "The consequences were described generally and they were not examined closely, so the complexity was reduced.",
+    "The resolution was accepted too quickly and it was not interrogated, which made it feel predictable.",
+    "There was an impact and it was mentioned, but it was not explored critically, so it felt thin.",
+    "The ending was presented as final and it was not questioned, even though questions were still there."
+  ];
+
+  const SA_open = [
+    "The text is introduced and it is positioned as significant within its context.",
+    "The film is discussed and it is framed as socially relevant.",
+    "The novel is examined and it is treated as an important commentary on society.",
+    "The play is analysed and it is described as still relevant, even now."
+  ];
+
+  const SA_mid = [
+    "It was argued that the influence was strong but it was explained in general terms rather than detailed analysis.",
+    "Statistics were included and they were used to reinforce the claim, yet the reasoning remained surface level.",
+    "Examples were repeated and they were connected loosely to the broader argument, so the logic felt circular.",
+    "It was stated confidently and it was restated, but it was not backed by layered evidence."
+  ];
+
+  const SA_end = [
+    "The implications were mentioned but they were not explored in a complex or critical way.",
+    "The conclusion was clear and it was repeated, so the argument felt predictable rather than nuanced.",
+    "There was a final claim and it was asserted, but it was not tested against counterarguments.",
+    "The final paragraph summarises again and it does not add depth, so it feels repetitive."
+  ];
+
+  function pick(arr, i, offset=0){
+    return arr[(i + offset) % arr.length];
+  }
+
+  function wordCount(text){
+    return (text.trim().match(/\b\w+\b/g) || []).length;
+  }
+
+  function ensureMinWords(text, minWords, level){
+    // append deliberately flawed filler until we hit the requirement
+    const fillersJ = [
+      "The point was said again and it was said again so it felt repetitive and basic.",
+      "It was meant to be clear but it was just repeated, and it was not explained in a deeper way.",
+      "Then it was added again and it was added again, so it sounded obvious and not very thoughtful."
+    ];
+    const fillersS = [
+      "The same wording was used again and it was used again, so the paragraph relied on repetition rather than development.",
+      "It was written in a general way and it was repeated, which reduces precision and weakens the overall impact.",
+      "There were claims that were made and they were restated, so the argument felt circular and not analytically sharp."
+    ];
+
+    let out = text;
+    const pool = level === 'Junior' ? fillersJ : fillersS;
+    let safety = 0;
+    while (wordCount(out) < minWords && safety < 10) {
+      out += " " + pool[safety % pool.length];
+      safety++;
+    }
+    return out;
+  }
+
+  function buildJuniorNarrative(theme, i){
+    // 20 handcrafted Year 5-style narrative paragraphs (third person only, flawed deliberately)
+
+    const paragraphs = [
+`The football trial was held after school and it was hotter than everyone expected. The grass was dry and it was scratching at his legs while he waited for his turn. He got the ball and he got nervous, and he kicked it too fast and it went wide. The coach was watching and he was writing something down, which made it worse and worse. It was only one kick but it felt big and it felt important. The whistle went and it was over, but it stayed in his head and it stayed there all night.`,
+
+`The camping trip started well but it was already raining by the time the tents were put up. The ground was wet and it was muddy, and the shoes got dirty straight away. He tried to help but he got in the way and he knocked a pole over. It was said that it was fine, but it did not feel fine and it did not feel calm. The fire was finally lit and it was small and weak. The night was quiet after that, but the mistake was still there and it was still bothering him.`,
+
+`The school assembly was meant to celebrate awards and it was supposed to be exciting. The hall was loud and it was packed, and his name was on the list. He walked up and he felt small and he felt strange, and he almost tripped on the step. The applause was heard and it was polite, but it did not sound big. The certificate was given and it was held tightly in his hand. The photo was taken and it was done quickly, and then it was over before it even felt real.`,
+
+`The lost dog was found near the oval and it was shaking in the shade. The collar was loose and it was dirty, and it looked small and scared. He went closer and he got worried, and he called out but it did not come. The gate was left open and it was probably his fault, which was a bad thought and it was repeated in his head. The owner was called and she was crying when she arrived. The dog was taken home and it was safe, but the guilt was still there.`,
+
+`The science fair project was built on the kitchen table and it was messy from the start. The cardboard was cut wrong and it was cut again, and the glue got everywhere. He said it would work and he said it again, but it did not look good and it did not look strong. The volcano was painted red and it was bright, but it was also cracked at the side. The judges were walking slowly and they were looking carefully. The experiment was shown and it was small, and the reaction was not very big.`,
+
+`The new student was sitting alone and it was obvious to everyone. The lunch tables were full and they were loud, and no one moved. He stood up and he got unsure, and he asked if the new student wanted to sit with them. The answer was quiet and it was short, but it was enough. The conversation was awkward and it was repeated with the same small questions. The bell rang and it was a relief, but the silence from earlier was still remembered.`,
+
+`The rainstorm came quickly and it was stronger than it looked on the radar. The sky was dark and it was heavy, and the gutters were overflowing. He ran inside and he got scared, and he watched the trees bend and bend again. The power was lost and it was quiet in a strange way. The candles were lit and they were small and flickering. The storm passed after a while and it was calm again, but the fear from before was not gone.`,
+
+`The library incident happened during silent reading and it was embarrassing. The chair was pulled out and it was louder than expected when it scraped. He dropped his book and he got flustered, and the pages went everywhere. The class was staring and they were whispering, which made it worse and worse. The librarian was walking over and she was not smiling. The apology was said and it was said again, but it still felt awkward and it felt long.`,
+
+`The birthday party was planned for weeks and it was talked about every day. The decorations were big and bright, and the cake was small and simple. He got excited and he got carried away, and he opened a gift too early. It was meant to be funny but it was not funny and it was not smart. The music was playing and it was loud, and people were dancing anyway. The night ended with photos that were taken quickly, and it was over faster than expected.`,
+
+`The art competition was announced and it was said to be important. The theme was freedom and it was confusing at first. He drew something small and he drew it again, because it did not look right and it did not look strong. The paint was mixed badly and it was mixed again, which made it muddy. The teacher was walking around and she was watching closely. The winner was called and it was not him, and it was accepted even though it felt disappointing.`,
+
+`The class debate was about homework and it was serious for some reason. The arguments were said loudly and they were said again, and the same points were repeated. He stood up and he got nervous, and he forgot what he was going to say. The words were simple and they were rushed, and they did not sound smart. The timer went and it was finished quickly. The result was announced and it was close, but it did not really change anything.`,
+
+`The swimming carnival was hot and it was crowded at the pool. The race was short but it was tiring, and the water felt cold and heavy. He jumped in and he got behind straight away. The whistle was blown and it was sharp, and the splashing was loud. He tried to catch up and he tried again, but the finish line was already there. The ribbon was touched and it was done, and it was not the result he wanted.`,
+
+`The group project was assigned on Monday and it was due on Friday. The plan was simple and it was written down, but it was not followed. He did his part and he did it again to be safe, but the others were not finished and they were not ready. The slides were messy and they were rushed at the end. The presentation was given and it was awkward, and the marks were lower than expected.`,
+
+`The detention was given after class and it was quiet in the room. The clock was ticking and it was slow, and the silence felt big. He was told to write lines and they were written again and again. It was meant to teach a lesson but it did not feel deep and it did not feel clear. The bell rang and it was freedom, but the mistake from earlier was still remembered.`,
+
+`The school excursion to the museum was meant to be fun and it was organised carefully. The bus ride was long and it was loud, and someone was singing badly at the back. He walked through the exhibits and he got bored, even though it was said to be interesting. The guide was talking and she was explaining, but the words were big and confusing. The day ended with a worksheet that was half finished and it was handed in anyway.`,
+
+`The bus ride home was crowded and it was noisy as usual. The seat was small and it was uncomfortable, and the bag was heavy on his lap. He got annoyed and he got quiet, and he stared out the window at the same houses again and again. The driver was calling out stops and he was impatient. The final stop was reached and it was relief, but the long day was still there in his head.`,
+
+`The soccer final was played under bright lights and it was tense from the start. The crowd was loud and it was distracting, and the score was tied. He got the ball and he got scared, and he passed it too quickly. The shot was missed and it was a big moment that was lost. The whistle blew and it was over, and the loss was hard to accept.`,
+
+`The music audition was held in a small room and it was silent before he started. The piano was slightly out of tune and it was bothering him. He began to sing and he got shaky, and the high note was not strong and it was not clear. The teacher was listening and she was writing something down. The final note was finished and it was done, and it did not feel perfect.`,
+
+`The market day stall was set up early and it was colourful at first. The signs were big and bright, and the prices were small and confusing. He got busy and he got tired, and he forgot to give someone the right change. It was noticed later and it was awkward. The money was counted at the end and it was less than expected, which was disappointing and it was frustrating.`,
+
+`The neighbour argument was heard through the fence and it was loud. The voices were sharp and they were angry, and the words were repeated again and again. He stood still and he got uncomfortable, and he did not know where to look. The door was slammed and it was sudden, and the street went quiet after that. The problem was not his but it still felt close and it still felt heavy.`
+    ];
+
+    return ensureMinWords(paragraphs[i], 70, 'Junior');
+  }
+
+  function buildJuniorAnalytical(item, i){
+    // Year 5 Analytical — Strict TEEAL structure
+    // Topic → Evidence → Explanation → Analysis → Link
+
+    const moments = {
+      "Enola Holmes": "In the scene where Enola escapes on her bike, she rides through the busy streets alone.",
+      "Spider-Man: Into the Spider-Verse": "In the leap of faith scene, Miles jumps from the building while the music builds.",
+      "Wonder": "In the precept scenes, Mr Browne shares quotes about kindness.",
+      "Holes": "When Stanley keeps digging holes in the heat, the action is repeated again and again.",
+      "Matilda": "In the classroom scenes with Miss Trunchbull, exaggeration is used to make her seem cruel.",
+      "The Lion King": "In the stampede scene, Simba is blamed for his father’s death.",
+      "Harry Potter and the Philosopher’s Stone": "In the Sorting Hat scene, Harry waits to be chosen.",
+      "Finding Nemo": "In the first day of school scene, Marlin keeps warning Nemo.",
+      "The BFG": "When Sophie sees the dream jars, description is used to make them seem magical.",
+      "The Boy in the Striped Pyjamas": "In the fence scenes, Bruno keeps meeting Shmuel secretly.",
+      "The Giver": "When Jonas sees the apple change, it shows something is different.",
+      "Zootopia": "In the DMV scene with the sloths, humour is stretched out.",
+      "Bridge to Terabithia": "When Jess and Leslie cross the rope swing, the risk is highlighted.",
+      "The Invention of Hugo Cabret": "In the train station scenes, the clocks are described in detail.",
+      "Storm Boy": "When Storm Boy raises Mr Percival, the coastal setting is calm.",
+      "Bluey": "In Sleepytime, the space images are shown while Bingo dreams.",
+      "The Outsiders": "In the rumble scene, the fighting is shown as intense.",
+      "The Hobbit": "In the riddles scene with Gollum, Bilbo answers carefully.",
+      "Charlotte’s Web": "When Charlotte writes words in the web, people start to notice Wilbur.",
+      "The Secret Garden": "When Mary finds the hidden key, the mystery begins."
+    };
+
+    const topic = `The ${item.type} "${item.title}" shows ${item.angle} and it is clearly presented to the audience.`;
+    const evidence = moments[item.title] || `In a key scene from ${item.title}, an important moment is shown.`;
+    const explanation = "This technique is used and it is meant to help the audience understand the main idea.";
+    const analysis = "It shows the character changes or learns something, but it is explained in a simple way and it repeats the same idea.";
+    const link = "The text shows that this lesson matters and it is important for young people to understand.";
+
+    const base = `${topic} ${evidence} ${explanation} ${analysis} ${link}`;
+
+    return ensureMinWords(base, 70, 'Junior');
+  }
+
+  function buildSeniorNarrative(theme, i){
+    // 20 handcrafted Year 10-style narrative paragraphs (third person only, flawed deliberately)
+
+    const paragraphs = [
+`The hospital waiting room was too bright and it was colder than it needed to be. The chairs were lined up and they were stiff, and the clock was louder than usual. He kept checking his phone and he kept checking the door, even though nothing was changing. The nurse was walking past and she was calm, which made it worse because it meant time was normal for her. The doctor was inside and he was deciding something important, and that thought was repeated again and again. The vending machine was humming and it was the only sound that stayed steady. The update finally came and it was short and simple, but it did not explain everything and it did not fix the fear that had already settled in the room.`,
+
+`The job interview was held in a glass office and it was meant to feel professional. The handshake was firm and it was brief, and the questions were simple at first. He got confident and he got too confident, and he answered too quickly. The panel was listening and they were nodding, but the smiles were small and controlled. The example he gave was repeated and it was not very detailed, even though it sounded impressive in his head. The silence after one question was long and it was uncomfortable. The final thanks were exchanged and it was over, but the mistakes were replayed again and again on the walk back to the car.`,
+
+`The airport farewell was rushed and it was louder than expected. The announcements were constant and they were sharp, and the line at security was slow. He said it would be fine and he said it again, but the words were thin and they were obvious. The hug was tight and it was held for longer than usual. The boarding call was made and it was final, and the distance suddenly felt big and it felt permanent. The wave through the glass was small and it was repeated until it was too far to see. The car park was quiet afterwards and it was strangely empty, even though nothing had really changed yet.`,
+
+`The exam paper was placed face down and it was heavier than it looked. The instructions were read and they were repeated, and the room was silent except for coughing. He turned the page and he got stuck on the first question, which was simple but it did not feel simple. The pen was moving and it was scratching, and time was passing too quickly. He wrote an answer and he wrote it again in a different way, which made it longer but not better. The clock was watched and it was watched again. The final minute was called and it was panic, even though the outcome was already decided by the earlier hesitation.`,
+
+`The family argument started in the kitchen and it was not meant to escalate. The plates were stacked and they were loud against the bench, and the voices were rising slowly. He said one thing and he said it again, which only made it worse. The history was brought up and it was repeated, and the same old mistakes were listed again and again. The door was slammed and it was sudden. The silence after was heavy and it was awkward, but the problem was not solved and it was not really discussed properly either.`,
+
+`The online message was sent late at night and it was not thought through properly. The words were typed and they were deleted, and then they were typed again. He thought it was honest and he thought it was clear, but it was read differently and it was shared. The replies were quick and they were sharp, and the screen felt small and close. The explanation he wrote was long and it was defensive. The conversation was screenshotted and it was saved, and the mistake was permanent in a way that felt bigger than the original issue.`,
+
+`The community protest was organised quickly and it was called urgent. The signs were painted and they were simple, and the slogans were repeated again and again. He stood at the edge and he got unsure, even though he agreed with the message. The speeches were made and they were passionate, but they were also predictable and they were familiar. The crowd was loud and it was united for a moment. The police were watching and they were waiting. The march ended peacefully and it was called successful, but the change that was demanded was still distant and it was not guaranteed.`,
+
+`The relationship breakdown was not dramatic and it was not loud. The conversation was calm and it was careful, and the same sentences were used again and again. He said he understood and he said it again, even though he did not fully understand. The reasons were listed and they were reasonable, but they were also vague and repeated. The goodbye was short and it was controlled. The room felt smaller after that and it was strangely tidy, as if nothing had happened, even though everything had shifted.`,
+
+`The sporting failure was replayed on the screen and it was analysed from every angle. The mistake was small and it was quick, but it was repeated again and again in slow motion. He went over it in his head and he went over it again, which did not help. The coach was explaining and he was calm, but the tone was heavy. The comments online were harsh and they were simple. The next game was mentioned and it was framed as redemption, but the doubt from before was still present and it was not erased by one speech.`,
+
+`The public speech was prepared for weeks and it was revised every night. The notes were printed and they were highlighted, and the opening line was memorised. He walked to the podium and he got aware of every small sound. The microphone was adjusted and it was too loud at first. The words came out and they were steady, but they were also rehearsed and safe. The applause at the end was polite and it was brief. The message was delivered and it was clear, but it was not as powerful as it had seemed in practice.`,
+
+`The ethical dilemma was discussed in the board meeting and it was described as complex. The options were listed and they were weighed, but the same financial concern was repeated again and again. He said it was risky and he said it again, but the risk was framed as necessary. The vote was taken and it was close. The decision was made and it was justified, even though it did not sit comfortably. The minutes were recorded and they were formal, but the unease from earlier was not written down and it was not addressed properly.`,
+
+`The property dispute had been building quietly and it was finally spoken about openly. The documents were placed on the table and they were highlighted in bright ink. He read the clause and he read it again, but the meaning was still unclear and it was still frustrating. The lawyer was explaining and she was patient. The history of the agreement was repeated and it was repeated again. The handshake at the end was stiff and it was forced, and the tension remained even after the meeting had finished.`,
+
+`The media scandal broke suddenly and it was everywhere by morning. The headlines were bold and they were dramatic, and the statements were short and controlled. He watched the press conference and he watched it again, which did not make it clearer. The apology was delivered and it was rehearsed. The questions were sharp and they were persistent. The narrative was shaped quickly and it was repeated across every channel, but the truth behind it was still uncertain and it was not fully explored.`,
+
+`The unexpected resignation was announced in a short email and it was described as personal. The reasons were vague and they were careful, and the tone was neutral. He reread the message and he reread it again, which only made it feel more final. The office was quiet and it was tense. The farewell card was passed around and it was signed quickly. The departure was framed as positive, but the instability underneath was obvious and it was not resolved by polite words.`,
+
+`The failed launch was streamed live and it was meant to impress investors. The countdown was loud and it was dramatic, and the build up was repeated in every promotional clip. He watched the numbers and he watched them freeze, which was worse than an explosion. The explanation was given and it was technical. The blame was shifted and it was subtle. The promise of a retry was made and it was confident, but the doubt from that first failure was still present and it was difficult to ignore.`,
+
+`The hospital corridor was long and it was quiet in a way that felt serious. The doors were closed and they were identical, and the lights were too bright. He walked slowly and he got aware of every footstep. The diagnosis had been mentioned and it was mentioned again, but it was not fully explained. The doctor was speaking and he was careful. The words were simple and they were repeated, yet the meaning behind them was heavy and it was hard to accept.`,
+
+`The political rally was crowded and it was loud from the beginning. The slogans were shouted and they were shouted again, and the same phrases were repeated across the banners. He listened and he listened again, trying to decide what he actually believed. The promises were bold and they were simple. The cheers were strong and they were immediate. The speech ended with applause that was long and it was confident, but the policies behind the words were not explained deeply and they were not questioned either.`,
+
+`The legal dispute was described as straightforward and it was said to be clear cut. The evidence was presented and it was organised neatly, but it was also repeated. He read the transcript and he read it again, looking for something new. The judge was listening and he was neutral. The ruling was delivered and it was final. The relief in the room was obvious, but the cost of the process was not discussed and it was not reflected on carefully.`,
+
+`The team collapse happened slowly and it was not noticed at first. The small arguments were brushed off and they were ignored, and the same frustrations were repeated quietly. He tried to fix it and he tried again, but the effort was not matched. The meeting was called and it was tense. The blame was shared and it was vague. The final performance was weak and it was disappointing, and the reasons behind it were listed later but they were not truly understood.`,
+
+`The property auction was fast and it was louder than expected. The bids were called and they were rising quickly, and the numbers felt unreal. He raised his hand and he raised it again, even though the price was already high and it was risky. The hammer was lifted and it was paused for effect. The final call was made and it was decisive. The crowd clapped and it was celebratory, but the commitment that had just been made was heavy and it was not fully processed yet.`
+    ];
+
+    return ensureMinWords(paragraphs[i], 130, 'Senior');
+  }
+
+  function buildSeniorAnalytical(item, i){
+    // Year 10 Analytical — Strict TEAVIT structure
+    // Topic → Evidence/Technique → Analysis → Values/Beliefs → Takeaway
+
+    const sceneMap = {
+      "Macbeth": "In Act 1 he is called \"brave Macbeth\" and later he speaks about his \"vaulting ambition\" which is a metaphor.",
+      "Romeo and Juliet": "In the balcony scene Romeo says \"It is the east, and Juliet is the sun\" which is a metaphor.",
+      "The Crucible": "In the courtroom scene accusations are repeated and the word \"witch\" is used like a weapon.",
+      "Jasper Jones": "When Charlie discovers Laura’s body, tension is built through short description.",
+      "To Kill a Mockingbird": "During Tom Robinson’s trial the evidence is clear but it is ignored by the jury.",
+      "1984": "When Winston reads the forbidden book, slogans like \"War is Peace\" are repeated.",
+      "The Handmaid’s Tale": "The red clothing is used as a symbol and it is repeated to show control.",
+      "The Great Gatsby": "The green light is used as a symbol and it is mentioned again and again.",
+      "Frankenstein": "Victor creates the creature and responsibility is avoided afterwards.",
+      "The Hunger Games": "In the arena scenes the violence is broadcast and it is turned into entertainment.",
+      "The Hate U Give": "When Starr speaks at the protest her voice becomes central.",
+      "The Truman Show": "The constructed town is shown as perfect but it is controlled.",
+      "Gattaca": "DNA testing is shown as determining opportunity and it is treated as normal.",
+      "Dead Poets Society": "Mr Keating encourages students to stand on desks and see differently.",
+      "The Merchant of Venice": "Shylock’s courtroom speech questions fairness and prejudice.",
+      "Animal Farm": "The slogan \"All animals are equal\" is repeated and it changes meaning.",
+      "The Curious Incident of the Dog in the Night-Time": "Christopher narrates events logically and it shapes reader trust.",
+      "Othello": "Iago repeats lies and it is shown how jealousy is slowly created.",
+      "The Dressmaker": "The town gossip spreads quickly and it ruins reputations.",
+      "The Book Thief": "When Liesel reads in the bomb shelter, Death narrates the moment."
+    };
+
+    const topic = `The ${item.type} ${item.title} shows ${item.angle} and it is presented as significant within its context.`;
+    const evidence = sceneMap[item.title] || `In a key scene from ${item.title}, a technique is used and it supports the main idea.`;
+    const analysis = "This technique is effective and it shows how characters or ideas develop, but it is explained in a general way without deep insight.";
+    const values = "It reflects values and beliefs about society and it shows what happens when those beliefs are challenged or broken.";
+    const takeaway = "The audience can see that this idea matters and it becomes a warning about consequences in the wider world.";
+
+    const base = `${topic} ${evidence} ${analysis} ${values} ${takeaway}`;
+
+    return ensureMinWords(base, 130, 'Senior');
+  }
+
+  // Build the actual databank (20 per category)
+  const data = {
+    Narrative: {
+      Junior: juniorNarrativeThemes.map((t,i)=>buildJuniorNarrative(t,i)),
+      Senior: seniorNarrativeThemes.map((t,i)=>buildSeniorNarrative(t,i))
+    },
+    Analytical: {
+      Junior: juniorAnalyticalThemes.map((t,i)=>buildJuniorAnalytical(t,i)),
+      Senior: seniorAnalyticalThemes.map((t,i)=>buildSeniorAnalytical(t,i))
+    }
+  };
+
+  // -----------------------------
+  // Highlighter
+  // -----------------------------
+  const NOUN_STARTS = new Set(["the","it","a","an","he","she","his","her","this","these","those","they","then","there"]);
+  const STOP_WORDS  = new Set(["and","but","so","then","just","really"]);
+  const BASIC_WORDS = new Set([
+    "got","get","gets","getting",
+    "went","go","goes","going",
+    "ran","run","runs","running",
+    "saw","see","sees","seeing",
+    "looked","look","looks","looking",
+    "show","shows","showing",
+    "say","says","said",
+    "make","makes","made","making",
+    "big","small","nice","good","bad","things","stuff"
+  ]);
+  const AUX_WORDS   = new Set(["was","were","is","are","be","been","being","has","have","had"]);
+
+  function escapeHtml(s) {
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function highlightText(raw) {
+    if (!raw) return "";
+
+    const sentences = raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [raw];
+    let out = "";
+    let lastKey = new Set();
+
+    for (const sent of sentences) {
+      const s = sent.trim();
+      if (!s) continue;
+
+      const firstWordMatch = s.match(/^[A-Za-z']+/);
+      const firstWord = firstWordMatch ? firstWordMatch[0] : "";
+
+      const tokens = s.match(/[A-Za-z0-9']+|[^A-Za-z0-9' ]/g) || [];
+      const currentKey = new Set();
+
+      const rebuilt = tokens.map((tok, idx) => {
+        const isWord = /^[A-Za-z0-9']+$/.test(tok);
+        if (!isWord) return escapeHtml(tok);
+
+        const low = tok.toLowerCase();
+        const htmlTok = escapeHtml(tok);
+
+        // Blue: weak start word only
+        if (idx === 0 && firstWord && NOUN_STARTS.has(firstWord.toLowerCase()) && low === firstWord.toLowerCase()) {
+          return `<span class=\"hl-noun\">${htmlTok}</span>`;
+        }
+
+        // Yellow: stop words
+        if (STOP_WORDS.has(low)) return `<span class=\"hl-stop\">${htmlTok}</span>`;
+
+        // Green: basic words
+        if (BASIC_WORDS.has(low)) return `<span class=\"hl-basic\">${htmlTok}</span>`;
+
+        // Red: auxiliaries (proxy for passive-heavy writing)
+        if (AUX_WORDS.has(low)) return `<span class=\"hl-passive\">${htmlTok}</span>`;
+
+        // Purple: repetition across adjacent sentences
+        if (low.length >= 6 && !STOP_WORDS.has(low) && !AUX_WORDS.has(low)) {
+          currentKey.add(low);
+          if (lastKey.has(low)) return `<span class=\"hl-repeat\">${htmlTok}</span>`;
+        }
+
+        return htmlTok;
+      }).join(" ").replace(/ +([,.!?;:])/g, "$1");
+
+      lastKey = currentKey;
+      out += rebuilt + " ";
+    }
+
+    return out.trim();
+  }
+
+  // -----------------------------
+  // Render + UI
+  // -----------------------------
+  function render(){
+    document.getElementById('jrContent').innerHTML = highlightText(data[currentMode].Junior[index]);
+    document.getElementById('srContent').innerHTML = highlightText(data[currentMode].Senior[index]);
+    document.getElementById('stats').innerText = `${currentMode} • Example ${index+1} / ${data[currentMode].Junior.length}`;
+  }
+
+  // Mode switch
+  Array.from(document.querySelectorAll('.mode-btn')).forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('bg-blue-600','text-white'));
+      btn.classList.add('bg-blue-600','text-white');
+      currentMode = btn.innerText;
+      index = 0;
+      render();
+    });
+  });
+
+  // Navigation
+  document.getElementById('btnNext').onclick = ()=>{ index=(index+1)%data[currentMode].Junior.length; render(); };
+  document.getElementById('btnPrev').onclick = ()=>{ index=(index-1+data[currentMode].Junior.length)%data[currentMode].Junior.length; render(); };
+  document.getElementById('btnRandom').onclick = ()=>{ index=Math.floor(Math.random()*data[currentMode].Junior.length); render(); };
+
+  // Theme
+  document.getElementById('themeToggle').onclick = ()=>{
+    document.documentElement.classList.toggle('dark');
+  };
+
+  // -----------------------------
+  // Tests (console)
+  // -----------------------------
+  function assert(cond, msg){
+    if (!cond) throw new Error(msg);
+  }
+
+  function runTests(){
+    console.group('Expression Sharpener Tests');
+
+    assert(data.Narrative.Junior.length === 20, 'Expected 20 Junior Narrative');
+    assert(data.Analytical.Junior.length === 20, 'Expected 20 Junior Analytical');
+    assert(data.Narrative.Senior.length === 20, 'Expected 20 Senior Narrative');
+    assert(data.Analytical.Senior.length === 20, 'Expected 20 Senior Analytical');
+
+    // Word-count tests
+    data.Narrative.Junior.forEach((t, i)=>assert(wordCount(t) >= 70, `Junior Narrative ${i+1} below 70 words`));
+    data.Analytical.Junior.forEach((t, i)=>{
+      assert(wordCount(t) >= 70, `Junior Analytical ${i+1} below 70 words`);
+      const anyTitle = juniorAnalyticalThemes.some(x => t.includes(x.title));
+      assert(anyTitle, `Junior Analytical ${i+1} does not reference a real text title`);
+    });
+    data.Narrative.Senior.forEach((t, i)=>assert(wordCount(t) >= 130, `Senior Narrative ${i+1} below 130 words`));
+    data.Analytical.Senior.forEach((t, i)=>{
+      assert(wordCount(t) >= 130, `Senior Analytical ${i+1} below 130 words`);
+      const anyTitle = seniorAnalyticalThemes.some(x => t.includes(x.title));
+      assert(anyTitle, `Senior Analytical ${i+1} does not reference a real text title`);
+    });
+
+    // Highlighter smoke test
+    const sample = highlightText('The dog was big and it was nice.');
+    assert(sample.includes('hl-noun') && sample.includes('hl-passive') && sample.includes('hl-basic') && sample.includes('hl-stop'), 'Highlighter did not tag expected classes');
+
+    // Ensure senior analytical includes at least one concrete scene marker
+    const sceneMarkers = ['balcony scene','act 2','courtroom scene','trial','forbidden book','green light','bomb shelter'];
+    const anyScene = data.Analytical.Senior.some(p => sceneMarkers.some(m => p.toLowerCase().includes(m)));
+    assert(anyScene, 'Expected at least one Senior Analytical exemplar to reference a concrete scene marker');
+
+    console.log('All tests passed.');
+    console.groupEnd();
+  }
+
+  // -----------------------------
+  // Boot
+  // -----------------------------
+  // Important: call initIconsSafe() AFTER the DOM is parsed, and never assume Lucide loaded.
+  document.addEventListener('DOMContentLoaded', () => {
+    initIconsSafe();
+    runTests();
+    render();
+  });
+</script>
+
 </body>
 </html>
