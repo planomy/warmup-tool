@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expression Sharpener</title>
+    <title>Expression Sharpener (Offline)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -23,12 +23,12 @@
         
         body { transition: background-color 0.3s ease; }
 
-        /* Highlight Styles */
-        .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-        .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-        .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-        .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-        .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+        /* Highlight Styles - Sharp Badges */
+        .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
+        .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
+        .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
+        .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
+        .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; cursor: help; }
 
         /* Dark Mode */
         .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
@@ -36,9 +36,6 @@
         .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
         .dark .hl-repeat { background-color: rgba(88, 28, 135, 0.9); color: #e9d5ff; border-color: #c084fc; }
         .dark .hl-stop { background-color: rgba(113, 63, 18, 0.9); color: #fef08a; border-color: #facc15; }
-
-        .spinner { border-top-color: transparent; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         aside { height: 100vh; position: sticky; top: 0; }
         @media (max-width: 768px) { aside { height: auto; position: relative; } }
@@ -48,16 +45,13 @@
 
     <div class="flex flex-col md:flex-row min-h-screen">
         
-        <!-- SIDEBAR (Left) -->
+        <!-- SIDEBAR -->
         <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8 shadow-sm z-30">
             <div>
                 <h1 class="text-2xl font-black text-blue-600 flex items-center gap-2">
                     <i data-lucide="pencil-line"></i> Sharpener
                 </h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">AU Curriculum V9 Warm-up</p>
-                <div id="keyStatus" class="mt-2 flex items-center gap-2 text-[10px] font-bold text-red-500">
-                    <div class="w-2 h-2 rounded-full bg-red-500"></div> No API Key
-                </div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Offline Database Mode</p>
             </div>
 
             <div class="space-y-6">
@@ -70,32 +64,10 @@
                     </div>
                 </div>
 
-                <!-- API Key & Model Select -->
-                <div class="space-y-3">
-                    <button id="btnApiKey" class="w-full py-3 text-slate-500 hover:text-blue-600 font-bold flex items-center justify-center gap-2 transition-colors border border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
-                        <i data-lucide="key" class="w-4 h-4"></i> Set API Key
-                    </button>
-                    
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-1 block">AI Model (v1)</label>
-                        <select id="modelSelect" class="w-full p-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Latest)</option>
-                            <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro (Latest)</option>
-                            <option value="gemini-1.5-flash-8b-latest">Gemini 1.5 Flash-8B (Latest)</option>
-                        </select>
-                    </div>
-
-                    <!-- DEBUG BUTTON -->
-                    <button id="btnListModels" class="w-full py-2 text-xs text-slate-400 hover:text-blue-600 font-bold flex items-center justify-center gap-2 border border-slate-100 dark:border-slate-800 rounded-lg">
-                        <i data-lucide="list" class="w-3 h-3"></i> Debug: List Available Models
-                    </button>
-                    <div id="modelsBox" class="hidden text-[10px] leading-tight p-3 rounded bg-slate-100 dark:bg-slate-900 font-mono overflow-x-auto max-h-32 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"></div>
-                </div>
-
                 <!-- Actions -->
-                <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
                     <button id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Generate Drafts
+                        <i data-lucide="shuffle" class="w-5 h-5"></i> Get New Example
                     </button>
                     <button id="btnReveal" disabled class="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border-2 border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 opacity-30 cursor-not-allowed">
                         <i data-lucide="eye" class="w-5 h-5"></i> Reveal Models
@@ -123,25 +95,21 @@
             </div>
         </aside>
 
-        <!-- MAIN WORKSPACE (Right) -->
+        <!-- MAIN WORKSPACE -->
         <main class="flex-1 p-6 md:p-12 space-y-10 overflow-y-auto bg-white dark:bg-slate-950">
             
-            <div id="errorBox" class="hidden bg-red-500/10 text-red-500 p-4 rounded-2xl border border-red-500/20 items-center gap-3 font-bold animate-pulse justify-center">
-                <i data-lucide="alert-circle"></i> <span id="errorMessage"></span>
-            </div>
-
             <!-- Junior Card -->
             <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
                     <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Year 5 Junior Draft (75+ Words)
+                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Year 5 Junior Draft
                     </span>
                     <button class="copy-btn text-slate-400 hover:text-blue-500 transition-colors" data-target="jrContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
                 </div>
-                <div id="jrContent" class="p-10 md:p-14 min-h-[250px]">
+                <div id="jrContent" class="p-10 md:p-14 min-h-[200px]">
                     <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
-                        <i data-lucide="scroll-text" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight text-slate-900 dark:text-white">Enter API Key & Click Generate</p>
+                        <i data-lucide="book-open" class="w-12 h-12 mb-4"></i>
+                        <p class="font-bold tracking-tight text-slate-900 dark:text-white">Ready to start.</p>
                     </div>
                 </div>
             </section>
@@ -150,14 +118,14 @@
             <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
                     <span class="text-[10px] font-black uppercase tracking-widest text-purple-500 flex items-center gap-2">
-                        <i data-lucide="book" class="w-4 h-4"></i> Year 10 Senior Draft (135+ Words)
+                        <i data-lucide="book" class="w-4 h-4"></i> Year 10 Senior Draft
                     </span>
                     <button class="copy-btn text-slate-400 hover:text-purple-500 transition-colors" data-target="srContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
                 </div>
-                <div id="srContent" class="p-10 md:p-14 min-h-[250px]">
+                <div id="srContent" class="p-10 md:p-14 min-h-[200px]">
                     <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
-                        <i data-lucide="text-quote" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight text-center">Senior content will appear here.</p>
+                        <i data-lucide="book-open" class="w-12 h-12 mb-4"></i>
+                        <p class="font-bold tracking-tight text-center">Ready to start.</p>
                     </div>
                 </div>
             </section>
@@ -165,78 +133,114 @@
         </main>
     </div>
 
-    <!-- API Key Modal -->
-    <div id="keyModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700">
-            <h2 class="text-xl font-bold mb-4">Enter Google API Key</h2>
-            <p class="text-sm text-slate-500 mb-4">Your key is stored locally in your browser.</p>
-            <input type="password" id="inputKey" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 dark:text-white" placeholder="Paste key here...">
-            <div class="flex gap-2">
-                <button id="saveKey" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Save Key</button>
-                <button id="closeModal" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-3 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Key management
-        let userApiKey = localStorage.getItem('gemini_api_key') || "";
-        let currentMode = "Narrative";
-        let jrRaw = "";
-        let srRaw = "";
-
-        // API Endpoint (V1 is more stable)
-        const API_BASE = 'https://generativelanguage.googleapis.com/v1';
-
-        lucide.createIcons();
-
-        const checkKey = () => {
-            const statusDiv = document.getElementById('keyStatus');
-            if(userApiKey && userApiKey.length > 10) {
-                statusDiv.innerHTML = '<div class="w-2 h-2 rounded-full bg-emerald-500"></div> API Key Ready';
-                statusDiv.className = "mt-2 flex items-center gap-2 text-[10px] font-bold text-emerald-500";
-            } else {
-                statusDiv.innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500"></div> No API Key';
-                statusDiv.className = "mt-2 flex items-center gap-2 text-[10px] font-bold text-red-500";
+        // ==========================================
+        // DATABASE OF EXAMPLES (Add more here!)
+        // ==========================================
+        const database = {
+            Narrative: {
+                Year5: [
+                    {
+                        flawed: "<N>The</N> sun <B>went</B> down. <N>It</N> <P>was covered</P> by clouds. <N>The</N> boy <B>ran</B> fast. <N>He</N> <P>was scared</P> by <S>basically</S> everything. <N>He</N> <B>saw</B> a house. <N>It</N> <B>got</B> dark. <N>The</N> house <P>was made</P> of wood.",
+                        improved: "As twilight descended, ominous clouds swallowed the sun. Sprinting frantically, the boy felt fear clutching at his chest. Looming ahead, a wooden house emerged from the shadows, its silhouette darkening against the evening sky."
+                    },
+                    {
+                        flawed: "<N>She</N> <B>got</B> a present. <N>It</N> <P>was wrapped</P> in red paper. <N>She</N> <B>was</B> happy. <N>Then</N> <S>so</S> <N>she</N> <B>went</B> to open it. <N>It</N> <B>had</B> a puppy inside. <N>The</N> puppy <B>was</B> cute.",
+                        improved: "Clutching the crimson-wrapped gift, a surge of joy rushed through her veins. Eagerly tearing away the paper, she discovered a tiny, adorable puppy nestled within the box."
+                    },
+                    {
+                        flawed: "<N>The</N> treasure <P>was found</P> by pirates. <N>They</N> <B>were</B> excited. <N>It</N> <B>had</B> gold inside. <N>The</N> gold <P>was shiny</P>. <N>Then</N> <N>they</N> <B>got</B> in a fight. <N>The</N> fight <P>was stopped</P> by the captain.",
+                        improved: "Discovering the treasure, the pirates erupted in excitement at the sight of the gleaming gold. However, greed quickly ignited a brawl, which was only quelled by the captain's roaring command."
+                    },
+                    {
+                        flawed: "<N>He</N> <B>went</B> to the forest. <N>It</N> <P>was filled</P> with trees. <N>He</N> <B>saw</B> a bear. <N>The</N> bear <B>ran</B> at him. <N>He</N> <B>got</B> scared. <N>So</N> <N>he</N> <B>ran</B> away <S>very</S> fast.",
+                        improved: "Venturing into the dense woodland, he froze upon spotting a massive bear. When the beast charged, panic seized him, forcing him to sprint away in a desperate bid for safety."
+                    },
+                    {
+                        flawed: "<N>The</N> storm <B>got</B> loud. <N>It</N> <P>was heard</P> by everyone. <N>The</N> rain <B>came</B> down hard. <N>It</N> <P>was flooding</P> the street. <N>Then</N> the wind <B>blew</B> a tree over.",
+                        improved: "Thunder roared, echoing through the neighborhood as the rain poured relentlessly. Floodwaters rapidly claimed the street, and a violent gust finally toppled an ancient tree."
+                    }
+                ],
+                Year10: [
+                    {
+                        flawed: "<N>The</N> protagonist <P>is shown</P> to be isolated. <N>He</N> <B>goes</B> into the wild. <N>This</N> <P>is done</P> to escape society. <N>He</N> <B>sees</B> nature as pure. <N>It</N> <P>is represented</P> by the snow. <N>The</N> snow <S>really</S> shows his cold feelings.",
+                        improved: "Seeking refuge from societal constraints, the protagonist retreats into the wilderness, viewing nature as a sanctuary of purity. The relentless snow mirrors his internal detachment, symbolizing a profound emotional frost."
+                    },
+                    {
+                        flawed: "<N>The</N> conflict <P>is caused</P> by greed. <N>It</N> <B>makes</B> the characters fight. <N>They</N> <B>get</B> angry <S>very</S> quickly. <N>This</N> <P>is seen</P> in the climax. <N>The</N> climax <P>is where</P> everything goes wrong.",
+                        improved: "Fueled by avarice, the conflict drives the characters toward inevitable violence. This destructive dynamic culminates in the climax, where their simmering anger erupts into catastrophic failure."
+                    },
+                    {
+                        flawed: "<N>She</N> <B>has</B> a lot of power. <N>This</N> <P>is used</P> to control others. <N>The</N> others <P>are scared</P> of her. <N>They</N> <B>do</B> what she says. <N>This</N> <B>shows</B> that power corrupts.",
+                        improved: "Wielding immense authority, she manipulates those around her through fear. Her dominance illustrates the corrupting influence of unchecked power, forcing subordinates into submission."
+                    },
+                    {
+                        flawed: "<N>The</N> setting <B>is</B> dark. <N>It</N> <P>is described</P> as gloomy. <N>This</N> <B>makes</B> the mood sad. <N>The</N> sadness <P>is felt</P> by the reader. <N>It</N> <B>shows</B> there is no hope.",
+                        improved: "Permeated by gloom, the dark setting establishes a pervasive melancholic mood. This atmosphere envelops the reader, effectively conveying a sense of utter hopelessness."
+                    },
+                    {
+                        flawed: "<N>He</N> <B>makes</B> a bad choice. <N>This</N> <P>is caused</P> by his pride. <N>His</N> pride <B>is</B> his fatal flaw. <N>It</N> <B>leads</B> to his death. <N>The</N> death <P>is tragic</P>.",
+                        improved: "Driven by hubris, his fatal decision seals his doom. This tragic downfall serves as a stark reminder of how unchecked pride inevitably leads to destruction."
+                    }
+                ]
+            },
+            Analytical: {
+                Year5: [
+                    {
+                        flawed: "<N>The</N> author <B>uses</B> similes. <N>They</N> <P>are used</P> to describe the dog. <N>The</N> dog <B>is</B> like a wolf. <N>This</N> <B>shows</B> the dog is scary. <N>It</N> <B>makes</B> us feel scared too.",
+                        improved: "Employing similes, the author compares the dog to a wolf to emphasise its ferocity. This technique effectively instills fear in the reader by highlighting the animal's predatory nature."
+                    },
+                    {
+                        flawed: "<N>The</N> book <B>is</B> about friendship. <N>It</N> <B>shows</B> two friends. <N>They</N> <B>help</B> each other. <N>This</N> <P>is important</P> because <S>basically</S> friends are good. <N>The</N> ending <B>is</B> happy.",
+                        improved: "Exploring the theme of friendship, the narrative demonstrates the value of mutual support. By depicting the characters' unwavering loyalty, the story underscores the importance of connection, leading to a heartwarming conclusion."
+                    },
+                    {
+                        flawed: "<N>The</N> writer <B>says</B> plastic is bad. <N>It</N> <P>is dumped</P> in the ocean. <N>This</N> <B>hurts</B> the turtles. <N>We</N> <B>should</B> stop using it. <N>It</N> <B>is</B> a big problem.",
+                        improved: "Highlighting the dangers of pollution, the writer argues that plastic waste devastates marine life, particularly turtles. Consequently, immediate action is required to eliminate this environmental crisis."
+                    },
+                    {
+                        flawed: "<N>The</N> poem <B>has</B> rhyming words. <N>They</N> <B>make</B> it sound fun. <N>The</N> fun <P>is felt</P> when reading. <N>It</N> <B>is</B> about a cat. <N>The</N> cat <B>is</B> silly.",
+                        improved: "Utilizing rhyme, the poem creates a playful rhythm that enhances the reader's enjoyment. This lighthearted structure perfectly complements the subject matter of the comical cat."
+                    },
+                    {
+                        flawed: "<N>The</N> character <B>is</B> brave. <N>He</N> <B>saves</B> the day. <N>This</N> <B>shows</B> he is a hero. <N>Heroes</N> <P>are liked</P> by people. <N>He</N> <B>does</B> good things.",
+                        improved: "Demonstrating immense courage, the character's heroic actions save the day. His selflessness defines him as a true hero, earning the admiration of the audience."
+                    }
+                ],
+                Year10: [
+                    {
+                        flawed: "<N>The</N> author <B>uses</B> metaphors. <N>This</N> <P>is done</P> to show depression. <N>The</N> depression <P>is compared</P> to a black hole. <N>It</N> <B>sucks</B> everything in. <N>This</N> <B>makes</B> the reader understand the pain.",
+                        improved: "Through the metaphor of a black hole, the author vividly depicts the consuming nature of depression. This comparison elucidates the protagonist's internal void, allowing the reader to grasp the gravity of their suffering."
+                    },
+                    {
+                        flawed: "<N>The</N> play <B>shows</B> ambition. <N>It</N> <P>is shown</P> through Macbeth. <N>He</N> <B>kills</B> the king. <N>This</N> <B>is</B> bad. <N>It</N> <B>leads</B> to guilt. <N>The</N> guilt <B>makes</B> him crazy.",
+                        improved: "Macbeth serves as a vessel for the exploration of unchecked ambition. His regicide triggers a psychological spiral, where overwhelming guilt eventually fractures his sanity."
+                    },
+                    {
+                        flawed: "<N>The</N> text <B>critiques</B> society. <N>It</N> <B>says</B> money is evil. <N>This</N> <P>is seen</P> in the rich characters. <N>They</N> <B>are</B> mean. <N>The</N> poor people <P>are treated</P> badly.",
+                        improved: "Critiquing societal materialism, the text posits that wealth breeds moral decay. This is exemplified by the cruelty of the affluent characters, contrasting sharply with the oppression faced by the impoverished."
+                    },
+                    {
+                        flawed: "<N>The</N> imagery <B>is</B> violent. <N>It</N> <B>uses</B> words like blood. <N>This</N> <P>is used</P> to shock us. <N>The</N> shock <B>makes</B> us listen. <N>It</N> <B>shows</B> the horror of war.",
+                        improved: "Deploying visceral, violent imagery, the text confronts the reader with the brutality of conflict. This shock tactic forces an acknowledgement of war's horrors, stripping away any romanticized notions of battle."
+                    },
+                    {
+                        flawed: "<N>The</N> ending <B>is</B> ambiguous. <N>It</N> <B>doesn't</B> say what happened. <N>This</N> <B>makes</B> us think. <N>We</N> <B>have</B> to guess. <N>It</N> <B>is</B> a clever trick.",
+                        improved: "Concluding with ambiguity, the narrative refuses to offer a definitive resolution. This open-endedness compels the reader to engage in interpretation, lingering on the thematic questions raised."
+                    }
+                ]
             }
         };
-        checkKey();
 
-        // Modal Logic
-        const modal = document.getElementById('keyModal');
-        document.getElementById('btnApiKey').addEventListener('click', () => {
-            document.getElementById('inputKey').value = userApiKey;
-            modal.classList.remove('hidden');
-        });
-        document.getElementById('closeModal').addEventListener('click', () => modal.classList.add('hidden'));
-        document.getElementById('saveKey').addEventListener('click', () => {
-            const val = document.getElementById('inputKey').value.trim();
-            if(val) {
-                userApiKey = val;
-                localStorage.setItem('gemini_api_key', val);
-                checkKey();
-                modal.classList.add('hidden');
-            }
-        });
+        // ==========================================
+        // APP LOGIC
+        // ==========================================
+        
+        let currentMode = "Narrative";
+        let currentJr = null;
+        let currentSr = null;
 
-        // DEBUG: List Models
-        document.getElementById('btnListModels').addEventListener('click', async () => {
-            if (!userApiKey) { modal.classList.remove('hidden'); return; }
-            const box = document.getElementById('modelsBox');
-            box.classList.remove('hidden');
-            box.innerText = "Querying API for available models...";
-            
-            try {
-                const response = await fetch(`${API_BASE}/models?key=${userApiKey}`);
-                const data = await response.json();
-                if(data.error) throw new Error(data.error.message);
-                
-                const names = data.models ? data.models.map(m => m.name.replace('models/', '')).filter(n => n.includes('gemini')).join('\n') : "No models found.";
-                box.innerText = "Available Models:\n" + names;
-            } catch(e) {
-                box.innerText = "Error listing models: " + e.message;
-            }
-        });
+        lucide.createIcons();
 
         // Theme Toggle
         document.getElementById('themeToggle').addEventListener('click', () => {
@@ -259,7 +263,7 @@
             });
         });
 
-        // Tag Formatting
+        // Tag Parser
         const formatText = (text) => {
             if (!text) return "";
             return text
@@ -270,127 +274,58 @@
                 .replace(/<S>(.*?)<\/S>/g, '<span class="hl-stop">$1</span>');
         };
 
-        const fetchContent = async (userQuery, systemPrompt) => {
-            if (!userApiKey) throw new Error("Please set your API Key in the sidebar.");
-            
-            const selectedModel = document.getElementById('modelSelect').value;
-            
-            // Payload
-            const payload = {
-                contents: [{ 
-                    role: "user",
-                    parts: [{ text: userQuery }] 
-                }],
-                systemInstruction: { 
-                    parts: [{ text: systemPrompt }] 
-                }
-            };
-
-            const response = await fetch(`${API_BASE}/models/${selectedModel}:generateContent?key=${userApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error?.message || `API Status ${response.status}`);
-            }
-            
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "No text returned.";
-        };
-
-        // Generator
-        document.getElementById('btnGenerate').addEventListener('click', async () => {
+        // Generation Logic (Random Selection)
+        document.getElementById('btnGenerate').addEventListener('click', () => {
             const jrDiv = document.getElementById('jrContent');
             const srDiv = document.getElementById('srContent');
-            const errorBox = document.getElementById('errorBox');
-            const btn = document.getElementById('btnGenerate');
-
-            if (!userApiKey) {
-                modal.classList.remove('hidden');
-                return;
-            }
-
-            btn.disabled = true;
-            errorBox.classList.add('hidden');
-            jrDiv.innerHTML = srDiv.innerHTML = '<div class="flex items-center justify-center py-24 w-full"><div class="spinner border-4 border-blue-500 rounded-full h-12 w-12"></div></div>';
-
-            const system = (lvl, words) => `You are an expert Australian Curriculum teacher. 
-            Write a flawed ${currentMode} paragraph for ${lvl} students (min ${words} words). 
             
-            MANDATORY TAG AUDIT:
-            1. <N>: Wrap ONLY the first word of EVERY sentence that starts with: "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". 
-               CRITICAL: Only wrap the single starter word.
-            2. <P>: Wrap Passive voice (e.g. <P>was found</P>).
-            3. <B>: Wrap Basic verbs (got, went, ran, saw).
-            4. <S>: Wrap Stop words (and, but, so, then, just, really).
-            5. <R>: Wrap Key repetitions in adjacent sentences.
+            // Get random items
+            const jrList = database[currentMode].Year5;
+            const srList = database[currentMode].Year10;
             
-            Return ONLY tagged text.`;
+            currentJr = jrList[Math.floor(Math.random() * jrList.length)];
+            currentSr = srList[Math.floor(Math.random() * srList.length)];
 
-            try {
-                const [j, s] = await Promise.all([
-                    fetchContent(`Draft flawed Yr5 ${currentMode} paragraph`, system("Year 5", 80)),
-                    fetchContent(`Draft flawed Yr10 ${currentMode} paragraph`, system("Year 10", 140))
-                ]);
-                jrRaw = j; srRaw = s;
-                jrDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(j)}</div>`;
-                srDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(s)}</div>`;
-                document.getElementById('btnReveal').disabled = false;
-                document.getElementById('btnReveal').classList.remove('opacity-30', 'cursor-not-allowed');
-            } catch (err) {
-                errorBox.classList.remove('hidden');
-                errorBox.classList.add('flex');
-                document.getElementById('errorMessage').innerText = err.message;
-                jrDiv.innerHTML = srDiv.innerHTML = '<p class="text-slate-400 italic text-center">Generation failed.</p>';
-            } finally {
-                btn.disabled = false;
-            }
+            jrDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(currentJr.flawed)}</div>`;
+            srDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(currentSr.flawed)}</div>`;
+
+            const revealBtn = document.getElementById('btnReveal');
+            revealBtn.disabled = false;
+            revealBtn.classList.remove('opacity-30', 'cursor-not-allowed');
         });
 
-        // Reveal
-        document.getElementById('btnReveal').addEventListener('click', async () => {
-            const btn = document.getElementById('btnReveal');
-            btn.disabled = true;
+        // Reveal Logic
+        document.getElementById('btnReveal').addEventListener('click', () => {
+            const revealBtn = document.getElementById('btnReveal');
+            revealBtn.disabled = true;
 
-            const improveSys = (lvl) => `Model rewrite for ${lvl}. 
-            CRITICAL RULE: DO NOT start ANY sentence with "The", "This", "It", "He", "She", "His", "Her", "They", or "There". 
-            Start with participial phrases, adverbial openings, or prepositional starts. 
-            Return ONLY improved text.`;
+            const markup = (text) => `<div class="mt-12 pt-12 border-t-2 border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-700 text-left"><span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-full mb-6 tracking-widest"><i data-lucide="check-circle" class="w-3 h-3"></i> Model Improvement</span><p class="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 font-medium">${text}</p></div>`;
 
-            try {
-                const [jI, sI] = await Promise.all([
-                    fetchContent(`Improve: ${jrRaw.replace(/<.*?>/g, '')}`, improveSys("Year 5")),
-                    fetchContent(`Improve: ${srRaw.replace(/<.*?>/g, '')}`, improveSys("Year 10"))
-                ]);
-
-                const markup = (text) => `<div class="mt-12 pt-12 border-t-2 border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-700 text-left"><span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-full mb-6 tracking-widest"><i data-lucide="check-circle" class="w-3 h-3"></i> Model Improvement</span><p class="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 font-medium">${text}</p></div>`;
-
-                document.getElementById('jrContent').innerHTML += markup(jI);
-                document.getElementById('srContent').innerHTML += markup(sI);
-                lucide.createIcons();
-            } catch (err) {
-                alert(err.message);
-            } finally {
-                btn.disabled = false;
-            }
+            document.getElementById('jrContent').innerHTML += markup(currentJr.improved);
+            document.getElementById('srContent').innerHTML += markup(currentSr.improved);
+            lucide.createIcons();
         });
 
         document.getElementById('btnReset').addEventListener('click', () => location.reload());
 
-        // Copy
+        // Copy functionality
         document.querySelectorAll('.copy-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const target = document.getElementById(btn.getAttribute('data-target'));
-                const text = target.innerText.split('Model Improvement')[0].trim();
+                const targetId = btn.getAttribute('data-target');
+                const targetEl = document.getElementById(targetId);
+                // Extract only text, remove the Model Improvement part if present
+                let text = targetEl.innerText;
+                if(text.includes('Model Improvement')) {
+                    text = text.split('Model Improvement')[0].trim();
+                }
+                
                 const temp = document.createElement('textarea');
                 temp.value = text;
                 document.body.appendChild(temp);
                 temp.select();
                 document.execCommand('copy');
                 document.body.removeChild(temp);
+                
                 const icon = btn.querySelector('i');
                 icon.setAttribute('data-lucide', 'check');
                 lucide.createIcons();
