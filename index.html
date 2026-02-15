@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
+        // Configure Tailwind to support class-based dark mode
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -21,16 +22,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         
-        body { transition: background-color 0.3s ease; }
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
 
-        /* Highlight Styles */
+        /* Highlight Styles - High Contrast & Sharp Badges */
         .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
 
-        /* Dark Mode Highlighting */
+        /* Dark Mode Highlighting - Enhanced Contrast for Midnight Background */
         .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
         .dark .hl-passive { background-color: rgba(127, 29, 29, 0.9); color: #fecaca; border-color: #f87171; }
         .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
@@ -150,7 +151,7 @@
     <div id="keyModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700">
             <h2 class="text-xl font-bold mb-4">Enter Google API Key</h2>
-            <p class="text-sm text-slate-500 mb-4">To run this tool outside the preview environment, you need a free Gemini API key.</p>
+            <p class="text-sm text-slate-500 mb-4">You need a standard Gemini API key. This is stored locally in your browser.</p>
             <input type="password" id="inputKey" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 mb-4 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Paste key here...">
             <div class="flex gap-2">
                 <button id="saveKey" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Save Key</button>
@@ -230,7 +231,8 @@
         const fetchContent = async (userQuery, systemPrompt) => {
             if (!userApiKey) throw new Error("Missing API Key. Click 'Set API Key' in settings.");
             
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userApiKey}`, {
+            // CHANGED MODEL TO gemini-1.5-flash FOR RELIABLE FREE TIER ACCESS
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
