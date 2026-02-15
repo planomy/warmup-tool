@@ -79,10 +79,10 @@
                     <div>
                         <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-1 block">AI Model</label>
                         <select id="modelSelect" class="w-full p-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Rec)</option>
-                            <option value="gemini-1.5-flash-001">Gemini 1.5 Flash (001)</option>
-                            <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
-                            <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard)</option>
+                            <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Fast)</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                            <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Exp)</option>
                         </select>
                     </div>
                 </div>
@@ -248,9 +248,8 @@
             
             const selectedModel = document.getElementById('modelSelect').value;
             
-            // PAYLOAD CONSTRUCTION LOGIC (The Fix)
-            // 1.0 Pro does not support 'systemInstruction'. 
-            // 1.5/2.0 support 'systemInstruction'.
+            // PAYLOAD CONSTRUCTION LOGIC
+            // 1.5 and 2.0 models support 'systemInstruction'.
             let payload = {
                 contents: [{ parts: [{ text: userQuery }] }]
             };
@@ -258,7 +257,7 @@
             if (selectedModel.includes("1.5") || selectedModel.includes("2.0")) {
                 payload.systemInstruction = { parts: [{ text: systemPrompt }] };
             } else {
-                // Fallback for 1.0 models: prepend instructions
+                // Fallback for older models if selected by accident (though removed from UI)
                 payload.contents[0].parts[0].text = `${systemPrompt}\n\n${userQuery}`;
             }
 
@@ -320,7 +319,7 @@
                 errorBox.classList.remove('hidden');
                 errorBox.classList.add('flex');
                 document.getElementById('errorMessage').innerText = err.message;
-                jrDiv.innerHTML = srDiv.innerHTML = '<p class="text-slate-400 italic text-center">Generation failed.</p>';
+                jrDiv.innerHTML = srDiv.innerHTML = '<p class="text-slate-400 italic text-center">Generation failed. Try another model in Settings.</p>';
             } finally {
                 btn.disabled = false;
             }
