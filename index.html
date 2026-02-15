@@ -39,31 +39,25 @@ const App = () => {
   };
 
   useEffect(() => {
-    try {
-      const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-      if (configStr && configStr !== "undefined") {
+    const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+    if (configStr) {
+      try {
         const firebaseConfig = JSON.parse(configStr);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
         const initAuth = async () => {
-          try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && __initial_auth_token !== "undefined") {
-              await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-              await signInAnonymously(auth);
-            }
-          } catch (e) {
-            console.warn("Auth note: Running in local/anonymous mode.");
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
           }
         };
-        
         initAuth();
-        const unsubscribe = onAuthStateChanged(auth, setUser);
-        return () => unsubscribe();
+        return onAuthStateChanged(auth, setUser);
+      } catch (e) {
+        console.error("Firebase Init Error");
       }
-    } catch (err) {
-      console.error("Setup error:", err);
     }
   }, []);
 
@@ -100,30 +94,30 @@ const App = () => {
 
     const getFlawedPrompt = (level) => `
       You are an expert English teacher specialized in the Australian Curriculum Version 9.
-      Write a paragraph that sounds like it was written by a "good" but repetitive ${level} student. 
+      Write a paragraph that sounds like it was written by a ${level} student with good ideas but poor expression habits. 
       Mode: ${mode}.
       
       MANDATORY HIGHLIGHT RULES:
-      1. BLUE <N> (Sentence Starters): Start sentences with "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". Wrap ONLY the starting word in <N>.
-      2. RED <P> (Passive Voice): Wrap forms of "to be" coupled with past participles (e.g., <P>was</P>, <P>is being</P>).
+      1. BLUE <N> (Sentence Starters): Start many sentences with: "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". Wrap ONLY the starting word in <N>.
+      2. RED <P> (Passive Voice): Wrap forms of "to be" coupled with past participles (e.g., <P>was</P>, <P>were</P>).
       3. GREEN <B> (Basic Verbs): Use simple verbs like <B>got</B>, <B>went</B>, <B>ran</B>, <B>saw</B>, <B>did</B>, <B>said</B>.
-      4. YELLOW <S> (Robust Stop Words): Wrap glue words like "and", "but", "so", "then", "just", "very", "really", "basically".
+      4. YELLOW <S> (Stop Words): Wrap glue words like "and", "but", "so", "then", "just", "very", "really", "basically".
       5. PURPLE <R> (Proximity Repetition): Wrap a key noun or verb in <R> ONLY IF it is repeated in the same or adjoining sentence.
       
       Constraints:
       - ${level === 'Year 5' ? 'Junior: minimum 75 words.' : 'Senior: minimum 140 words.'}
-      - Return ONLY the paragraph with tags.
+      - Return ONLY the paragraph with XML tags included.
     `;
 
     try {
       const [junior, senior] = await Promise.all([
-        fetchWithRetry(`Write Year 5 ${mode} paragraph (75+ words) with tags.`, getFlawedPrompt('Year 5')),
-        fetchWithRetry(`Write Year 10 ${mode} paragraph (140+ words) with tags.`, getFlawedPrompt('Year 10'))
+        fetchWithRetry(`Write a flawed Year 5 ${mode} paragraph with tags.`, getFlawedPrompt('Year 5')),
+        fetchWithRetry(`Write a flawed Year 10 ${mode} paragraph with tags.`, getFlawedPrompt('Year 10'))
       ]);
       setJuniorPara(junior);
       setSeniorPara(senior);
     } catch (err) {
-      setError("Failed to generate content. Please try again.");
+      setError("Error generating paragraphs. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -135,27 +129,33 @@ const App = () => {
     setError(null);
 
     const getImprovedPrompt = (level) => {
-        const year5Specs = `
-            Target: High-achieving Year 5 student.
-            CRITICAL ANTI-REPETITION RULE: ZERO sentences may start with 'The', 'This', 'It', 'He', or 'She'. 
-            - Force varied syntax: start with '-ing' verbs (Gazing into...), adverbs (Cautiously, ...), or conjunctions (While..., Although...).
-            - Avoid academic 'thesaurus' words. Keep it grounded but precise.
-            - Ensure the subject of the sentence changes frequently to avoid 'His' or 'The' patterns.
+        const strictRules = `
+          CRITICAL SYNTAX RULE: DO NOT start ANY sentence with the following words: "The", "This", "It", "He", "She", "His", "Her", "They", "There".
+          Instead, use:
+          - Participial phrases (e.g., "Gazing into the distance...", "Exhausted by the journey...")
+          - Adverbial phrases (e.g., "Reluctantly, ...", "Quietly, ...")
+          - Subordinating conjunctions (e.g., "Although...", "While...")
+          - Nominalization (e.g., "His decision" becomes "The motivation behind the choice...")
         `;
+
+        const year5Specs = `
+          Target: High-achieving Year 5 student.
+          Tone: Engaging and clear child's voice. Use precise but age-appropriate verbs (e.g., 'scrambled' instead of 'went'). 
+          AVOID: Overly academic words like 'avarice' or 'subsequently'.
+        `;
+
         const year10Specs = `
-            Target: High-achieving Year 10 student.
-            CRITICAL SYNTAX RULE: ZERO sentences may start with 'The', 'This', 'It', 'He', 'She', or 'There'.
-            - NO 'This shows' or 'The author uses'. 
-            - Use Nominalization: Turn actions into abstract nouns to start sentences (e.g., instead of 'The character is lonely', use 'A pervasive sense of isolation permeates...').
-            - Use Prepositional phrases or subordinate clauses to ground the analysis.
-            - Focus on analytical precision without being wordy. 
+          Target: High-achieving Year 10 student.
+          Tone: Sophisticated, analytical, and controlled. Focus on abstract nouns and precise critical evaluation. 
+          AVOID: Being wordy or using purple prose.
         `;
 
         return `
-            Rewrite the flawed text below into a MODEL version for a ${level} student. 
+            Rewrite the flawed text below as a MODEL version for a ${level} student. 
             ${level === 'Year 5' ? year5Specs : year10Specs}
-            Instructions: Remove all tags. Every sentence MUST feature a different and sophisticated opening. Avoid the 'The/This' trap entirely.
-            Return ONLY the paragraph.
+            ${strictRules}
+            Instructions: Remove all highlight tags. Every sentence MUST start with a sophisticated and unique opening.
+            Return ONLY the improved paragraph.
         `;
     };
 
@@ -168,7 +168,7 @@ const App = () => {
       setSeniorImproved(sImproved);
       setShowImproved(true);
     } catch (err) {
-      setError("Failed to reveal model versions.");
+      setError("Error generating models.");
     } finally {
       setRevealing(false);
     }
@@ -272,7 +272,7 @@ const App = () => {
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl disabled:opacity-50"
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : <RefreshCw size={20} />}
-                    Generate Both
+                    Generate Paragraphs
                   </button>
 
                   <button
