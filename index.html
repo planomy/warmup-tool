@@ -12,7 +12,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
                     },
                 },
             },
@@ -23,19 +23,19 @@
         
         body { transition: background-color 0.3s ease; }
 
-        /* Highlight Styles - Vibrant Colors on Clean Backgrounds */
+        /* Highlight Styles - Designed for Maximum Visibility */
         .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
         .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 700; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
 
-        /* Dark Mode Highlighting - High Visibility on Deep Backgrounds */
-        .dark .hl-noun { background-color: #1e3a8a; color: #bfdbfe; border-color: #60a5fa; }
-        .dark .hl-passive { background-color: #7f1d1d; color: #fecaca; border-color: #f87171; }
-        .dark .hl-basic { background-color: #064e3b; color: #bbf7d0; border-color: #4ade80; }
-        .dark .hl-repeat { background-color: #581c87; color: #e9d5ff; border-color: #c084fc; }
-        .dark .hl-stop { background-color: #713f12; color: #fef08a; border-color: #facc15; }
+        /* Dark Mode Contrast Fixes */
+        .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
+        .dark .hl-passive { background-color: rgba(127, 29, 29, 0.9); color: #fecaca; border-color: #f87171; }
+        .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
+        .dark .hl-repeat { background-color: rgba(88, 28, 135, 0.9); color: #e9d5ff; border-color: #c084fc; }
+        .dark .hl-stop { background-color: rgba(113, 63, 18, 0.9); color: #fef08a; border-color: #facc15; }
 
         .spinner { border-top-color: transparent; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -49,30 +49,30 @@
     <div class="flex flex-col md:flex-row min-h-screen">
         
         <!-- SIDEBAR (Left) -->
-        <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8 shadow-sm z-20">
+        <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8 shadow-sm z-30">
             <div>
                 <h1 class="text-2xl font-black text-blue-600 flex items-center gap-2">
                     <i data-lucide="pencil-line"></i> Sharpener
                 </h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 text-center md:text-left">AU Curriculum V9 Warm-up</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">AU Curriculum V9 Warm-up</p>
             </div>
 
             <div class="space-y-6">
-                <!-- Mode Switcher -->
+                <!-- Mode Selection -->
                 <div>
                     <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-2 block">Writing Mode</label>
                     <div class="flex p-1 bg-white dark:bg-slate-800 rounded-xl gap-1 border border-slate-200 dark:border-slate-700">
-                        <button id="modeNarrative" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-md transition-all">Narrative</button>
-                        <button id="modeAnalytical" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600 transition-all dark:hover:text-blue-400">Analytical</button>
+                        <button id="modeNarrative" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-md">Narrative</button>
+                        <button id="modeAnalytical" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600">Analytical</button>
                     </div>
                 </div>
 
-                <!-- Primary Controls -->
+                <!-- Controls -->
                 <div class="space-y-2">
                     <button id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
                         <i data-lucide="refresh-cw" class="w-5 h-5"></i> Generate Drafts
                     </button>
-                    <button id="btnReveal" disabled class="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 opacity-30 cursor-not-allowed">
+                    <button id="btnReveal" disabled class="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border-2 border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 opacity-30 cursor-not-allowed">
                         <i data-lucide="eye" class="w-5 h-5"></i> Reveal Models
                     </button>
                     <button id="btnReset" class="w-full py-3 text-slate-400 hover:text-red-500 font-bold flex items-center justify-center gap-2 transition-colors">
@@ -85,11 +85,11 @@
             <div class="mt-auto border-t border-slate-200 dark:border-slate-800 pt-6">
                 <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest text-center">Highlight Key</h3>
                 <div class="grid grid-cols-1 gap-3 text-xs font-bold px-2">
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-blue-500 shadow-sm"></div> Noun Start</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-red-500 shadow-sm"></div> Passive Voice</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-green-500 shadow-sm"></div> Basic Verb</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-purple-500 shadow-sm"></div> Repetition</div>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-yellow-500 shadow-sm"></div> Stop Words</div>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-blue-500"></div> Noun Start</div>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-red-500"></div> Passive Voice</div>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-green-500"></div> Basic Verb</div>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-purple-500"></div> Repetition</div>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-yellow-500"></div> Stop Words</div>
                 </div>
                 
                 <button id="themeToggle" class="w-full mt-8 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-xs font-bold shadow-sm transition-all hover:border-blue-400">
@@ -107,32 +107,32 @@
 
             <!-- Junior Section -->
             <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/30">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
                     <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2">
                         <i data-lucide="graduation-cap" class="w-4 h-4"></i> Year 5 Junior Draft (75+ Words)
                     </span>
                     <button class="copy-btn text-slate-400 hover:text-blue-500 transition-colors" data-target="jrContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
                 </div>
                 <div id="jrContent" class="p-10 md:p-14 min-h-[250px]">
-                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
+                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale">
                         <i data-lucide="scroll-text" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight">Click generate to begin lesson.</p>
+                        <p class="font-bold tracking-tight text-slate-900 dark:text-white">Click generate to begin lesson.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Senior Section -->
             <section class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100 dark:shadow-none overflow-hidden transition-all">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/30">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
                     <span class="text-[10px] font-black uppercase tracking-widest text-purple-500 flex items-center gap-2">
                         <i data-lucide="book" class="w-4 h-4"></i> Year 10 Senior Draft (135+ Words)
                     </span>
                     <button class="copy-btn text-slate-400 hover:text-purple-500 transition-colors" data-target="srContent"><i data-lucide="copy" class="w-4 h-4"></i></button>
                 </div>
                 <div id="srContent" class="p-10 md:p-14 min-h-[250px]">
-                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale text-slate-900 dark:text-white">
-                        <i data-lucide="text-quote" class="w-12 h-12 mb-4"></i>
-                        <p class="font-bold tracking-tight text-center">Senior content will appear here.</p>
+                    <div class="flex flex-col items-center justify-center py-10 opacity-20 grayscale">
+                        <i data-lucide="text-quote" class="w-12 h-12 mb-4 text-slate-900 dark:text-white"></i>
+                        <p class="font-bold tracking-tight text-slate-900 dark:text-white">Senior content will appear here.</p>
                     </div>
                 </div>
             </section>
@@ -141,7 +141,8 @@
     </div>
 
     <script>
-        const apiKey = ""; 
+        const apiKey = ""; // Platform injections happen here
+
         let currentMode = "Narrative";
         let jrRaw = "";
         let srRaw = "";
@@ -154,14 +155,12 @@
             const isDark = document.documentElement.classList.toggle('dark');
             const themeIcon = document.getElementById('themeIcon');
             const themeLabel = document.getElementById('themeLabel');
-            
             themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
             themeLabel.innerText = isDark ? 'Light Mode' : 'Dark Mode';
-            
             lucide.createIcons();
         });
 
-        // Mode Selector
+        // Mode Switching
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.mode-btn').forEach(b => {
@@ -172,7 +171,6 @@
             });
         });
 
-        // Tag Processing
         const formatText = (text) => {
             if (!text) return "";
             return text
@@ -200,7 +198,7 @@
                     
                     if (!response.ok) {
                         const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.error?.message || `Error ${response.status}`);
+                        throw new Error(errData.error?.message || `API Status ${response.status}`);
                     }
                     const data = await response.json();
                     return data.candidates[0].content.parts[0].text;
@@ -224,28 +222,27 @@
             errorBox.classList.add('hidden');
             jrDiv.innerHTML = srDiv.innerHTML = '<div class="flex items-center justify-center py-24 w-full"><div class="spinner border-4 border-blue-500 rounded-full h-12 w-12"></div></div>';
 
-            const system = (lvl, words) => `Expert Australian Curriculum teacher. 
-            Write flawed ${currentMode} for ${lvl} (min ${words} words). 
+            const system = (lvl, words) => `You are an expert Australian Curriculum teacher. 
+            Write a flawed ${currentMode} paragraph for ${lvl} students (min ${words} words). 
             
-            MANDATORY AUDIT RULES:
+            MANDATORY TAG AUDIT:
             1. <N>: Wrap ONLY the first word of EVERY sentence that starts with: "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". 
-               - If you miss a single "The" or "She" at a sentence start, you have failed.
-               - Wrap ONLY the word, never the whole sentence.
+               CRITICAL: If a sentence starts with "The", you MUST wrap ONLY the word "The" in <N>. Never wrap the whole sentence.
             2. <P>: Wrap Passive voice (e.g. <P>was found</P>).
-            3. <B>: Wrap Basic verbs (got, went, ran, saw, did).
-            4. <S>: Wrap overused non-contextual stop words (and, but, so, then, just, very, really).
+            3. <B>: Wrap Basic verbs (got, went, ran, saw).
+            4. <S>: Wrap Stop words (and, but, so, then, just, really).
             5. <R>: Wrap Key repetitions in adjacent sentences.
             
-            Return ONLY the tagged paragraph. Maintain a capaple but safe student voice.`;
+            Return ONLY tagged text. Keep student voice realistic for the grade.`;
 
             try {
                 const [j, s] = await Promise.all([
-                    fetchContent(`Draft flawed Yr5 ${currentMode} text`, system("Year 5", 80)),
-                    fetchContent(`Draft flawed Yr10 ${currentMode} text`, system("Year 10", 140))
+                    fetchContent(`Draft flawed Year 5 ${currentMode} text`, system("Year 5", 80)),
+                    fetchContent(`Draft flawed Year 10 ${currentMode} text`, system("Year 10", 140))
                 ]);
                 jrRaw = j; srRaw = s;
-                jrDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500">${formatText(j)}</div>`;
-                srDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500">${formatText(s)}</div>`;
+                jrDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(j)}</div>`;
+                srDiv.innerHTML = `<div class="text-xl md:text-2xl leading-relaxed font-medium text-slate-800 dark:text-slate-100 animate-in fade-in duration-500 text-left">${formatText(s)}</div>`;
                 document.getElementById('btnReveal').disabled = false;
                 document.getElementById('btnReveal').classList.remove('opacity-30', 'cursor-not-allowed');
             } catch (err) {
@@ -258,15 +255,15 @@
             }
         });
 
-        // Model Improvement Reveal
+        // Model Improvement Logic
         document.getElementById('btnReveal').addEventListener('click', async () => {
             const btn = document.getElementById('btnReveal');
             btn.disabled = true;
 
-            const improveSys = (lvl) => `Model rewrite of the text for ${lvl}. 
-            CRITICAL PEDAGOGICAL RULE: DO NOT start ANY sentence with "The", "This", "It", "He", "She", "His", "Her", "They", or "There". 
-            Instead, use participial -ing phrases, adverbial starts, or nominalisation. 
-            Year 5: Natural, gifted child's voice. Year 10: High-level analytical precision. 
+            const improveSys = (lvl) => `Rewrite the flawed text into a model version for ${lvl}. 
+            CRITICAL RULE: DO NOT start ANY sentence with "The", "This", "It", "He", "She", "His", "Her", "They", or "There". 
+            Instead, start with participial phrases, adverbial openings, or prepositional starts. 
+            Year 5: High-achieving 11yo voice. Year 10: High-level analytical precision. 
             Return ONLY the improved paragraph. No labels.`;
 
             try {
@@ -275,7 +272,7 @@
                     fetchContent(`Model rewrite for Yr10: ${srRaw.replace(/<.*?>/g, '')}`, improveSys("Year 10"))
                 ]);
 
-                const modelMarkup = (text) => `<div class="mt-12 pt-12 border-t-2 border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-700"><span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-full mb-6 tracking-widest"><i data-lucide="check-circle" class="w-3 h-3"></i> Model Improvement</span><p class="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 font-medium">${text}</p></div>`;
+                const modelMarkup = (text) => `<div class="mt-12 pt-12 border-t-2 border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-700 text-left"><span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-full mb-6 tracking-widest"><i data-lucide="check-circle" class="w-3 h-3"></i> Model Improvement</span><p class="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 font-medium">${text}</p></div>`;
 
                 document.getElementById('jrContent').innerHTML += modelMarkup(jI);
                 document.getElementById('srContent').innerHTML += modelMarkup(sI);
@@ -298,7 +295,6 @@
                 temp.select();
                 document.execCommand('copy');
                 document.body.removeChild(temp);
-                
                 const icon = btn.querySelector('i');
                 icon.setAttribute('data-lucide', 'check');
                 lucide.createIcons();
