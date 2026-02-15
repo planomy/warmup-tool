@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Loader2, 
   BookOpen, 
@@ -30,6 +30,7 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Error category definitions for highlighting
   const errorTypes = {
     N: { label: 'Noun Start', light: 'bg-blue-100 text-blue-700 border-blue-200', dark: 'bg-blue-900/40 text-blue-300 border-blue-800', dot: 'bg-blue-500' },
     P: { label: 'Passive Voice', light: 'bg-red-100 text-red-700 border-red-200', dark: 'bg-red-900/40 text-red-300 border-red-800', dot: 'bg-red-500' },
@@ -56,7 +57,7 @@ const App = () => {
         initAuth();
         return onAuthStateChanged(auth, setUser);
       } catch (e) {
-        console.error("Firebase Init Error");
+        console.error("Firebase Initialization Failed");
       }
     }
   }, []);
@@ -94,14 +95,14 @@ const App = () => {
 
     const getFlawedPrompt = (level) => `
       You are an expert English teacher specialized in the Australian Curriculum Version 9.
-      Write a paragraph that sounds like it was written by a ${level} student with good ideas but poor expression habits. 
+      Write a paragraph that sounds like it was written by a capable ${level} student with repetitive expression habits. 
       Mode: ${mode}.
       
       MANDATORY HIGHLIGHT RULES:
-      1. BLUE <N> (Sentence Starters): Start many sentences with: "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". Wrap ONLY the starting word in <N>.
-      2. RED <P> (Passive Voice): Wrap forms of "to be" coupled with past participles (e.g., <P>was</P>, <P>were</P>).
+      1. BLUE <N> (Sentence Starters): Start sentences with: "The", "It", "A", "An", "He", "She", "His", "Her", "This", "These", "Those", "They", "Then", "There". Wrap ONLY the starting word in <N>.
+      2. RED <P> (Passive Voice): Wrap forms of "to be" coupled with past participles (e.g., <P>was</P>, <P>were</P>, <P>is being</P>).
       3. GREEN <B> (Basic Verbs): Use simple verbs like <B>got</B>, <B>went</B>, <B>ran</B>, <B>saw</B>, <B>did</B>, <B>said</B>.
-      4. YELLOW <S> (Stop Words): Wrap glue words like "and", "but", "so", "then", "just", "very", "really", "basically".
+      4. YELLOW <S> (Stop Words): Wrap non-contextual glue words like "and", "but", "so", "then", "just", "very", "really", "basically".
       5. PURPLE <R> (Proximity Repetition): Wrap a key noun or verb in <R> ONLY IF it is repeated in the same or adjoining sentence.
       
       Constraints:
@@ -111,13 +112,13 @@ const App = () => {
 
     try {
       const [junior, senior] = await Promise.all([
-        fetchWithRetry(`Write a flawed Year 5 ${mode} paragraph with tags.`, getFlawedPrompt('Year 5')),
-        fetchWithRetry(`Write a flawed Year 10 ${mode} paragraph with tags.`, getFlawedPrompt('Year 10'))
+        fetchWithRetry(`Write flawed Year 5 ${mode} paragraph with tags.`, getFlawedPrompt('Year 5')),
+        fetchWithRetry(`Write flawed Year 10 ${mode} paragraph with tags.`, getFlawedPrompt('Year 10'))
       ]);
       setJuniorPara(junior);
       setSeniorPara(senior);
     } catch (err) {
-      setError("Error generating paragraphs. Please try again.");
+      setError("Failed to generate paragraphs. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -130,32 +131,34 @@ const App = () => {
 
     const getImprovedPrompt = (level) => {
         const strictRules = `
-          CRITICAL SYNTAX RULE: DO NOT start ANY sentence with the following words: "The", "This", "It", "He", "She", "His", "Her", "They", "There".
+          CRITICAL SYNTAX RULE: ZERO sentences in your rewrite can start with "The", "This", "It", "He", "She", "His", "Her", "They", or "There".
+          
           Instead, use:
-          - Participial phrases (e.g., "Gazing into the distance...", "Exhausted by the journey...")
-          - Adverbial phrases (e.g., "Reluctantly, ...", "Quietly, ...")
-          - Subordinating conjunctions (e.g., "Although...", "While...")
-          - Nominalization (e.g., "His decision" becomes "The motivation behind the choice...")
+          - Participial phrases (e.g., "Gazing into the distance...", "Driven by fear...")
+          - Adverbial phrases (e.g., "Reluctantly, ...", "Immediately, ...", "Surprisingly, ...")
+          - Prepositional phrases (e.g., "Amidst the chaos, ...", "Beyond the broken gate, ...")
+          - Subordinating conjunctions (e.g., "While the group argued, ...", "As the light faded, ...")
+          - Nominalization (e.g., "The exploration of..." instead of "The character explored").
         `;
 
         const year5Specs = `
           Target: High-achieving Year 5 student.
-          Tone: Engaging and clear child's voice. Use precise but age-appropriate verbs (e.g., 'scrambled' instead of 'went'). 
-          AVOID: Overly academic words like 'avarice' or 'subsequently'.
+          Tone: Engaging and clear child's voice. Use precise but age-appropriate verbs.
+          AVOID: Overly complex academic words like 'avarice', 'precipitous', or 'clandestine'.
         `;
 
         const year10Specs = `
           Target: High-achieving Year 10 student.
-          Tone: Sophisticated, analytical, and controlled. Focus on abstract nouns and precise critical evaluation. 
-          AVOID: Being wordy or using purple prose.
+          Tone: Sophisticated, analytical, and direct. Focus on abstract nouns and critical insight. 
+          AVOID: Being wordy or using "purple prose."
         `;
 
         return `
-            Rewrite the flawed text below as a MODEL version for a ${level} student. 
+            Rewrite the following flawed text as a MODEL version for a ${level} student. 
             ${level === 'Year 5' ? year5Specs : year10Specs}
             ${strictRules}
-            Instructions: Remove all highlight tags. Every sentence MUST start with a sophisticated and unique opening.
-            Return ONLY the improved paragraph.
+            Instructions: Remove all highlight tags. Every sentence MUST feature a different and sophisticated opening.
+            Return ONLY the improved paragraph. No conversational intro.
         `;
     };
 
@@ -168,7 +171,7 @@ const App = () => {
       setSeniorImproved(sImproved);
       setShowImproved(true);
     } catch (err) {
-      setError("Error generating models.");
+      setError("Failed to generate model versions.");
     } finally {
       setRevealing(false);
     }
@@ -185,24 +188,28 @@ const App = () => {
 
   const renderParagraph = (text) => {
     if (!text) return null;
-    const parts = text.split(/(<[NPBRS]>.*?<\/[NPBRS]>)/g);
-    return parts.map((part, i) => {
-      const match = part.match(/<([NPBRS])>(.*?)<\/\1>/);
-      if (match) {
-        const type = match[1];
-        const content = match[2];
-        const styles = errorTypes[type];
-        return (
-          <span 
-            key={i} 
-            className={`px-1 py-0.5 rounded border-b-2 font-medium transition-colors ${darkMode ? styles.dark : styles.light}`}
-          >
-            {content}
-          </span>
-        );
-      }
-      return part;
-    });
+    try {
+      const parts = text.split(/(<[NPBRS]>.*?<\/[NPBRS]>)/g);
+      return parts.map((part, i) => {
+        const match = part.match(/<([NPBRS])>(.*?)<\/\1>/);
+        if (match) {
+          const type = match[1];
+          const content = match[2];
+          const styles = errorTypes[type];
+          return (
+            <span 
+              key={i} 
+              className={`px-1 py-0.5 rounded border-b-2 font-medium transition-colors ${darkMode ? styles.dark : styles.light}`}
+            >
+              {content}
+            </span>
+          );
+        }
+        return part;
+      });
+    } catch (e) {
+      return text;
+    }
   };
 
   const copyToClipboard = (text) => {
@@ -283,7 +290,7 @@ const App = () => {
                     } disabled:opacity-20`}
                   >
                     {revealing ? <Loader2 className="animate-spin" size={20} /> : <Eye size={20} />}
-                    Reveal Models
+                    Reveal Model
                   </button>
 
                   <button
@@ -319,11 +326,11 @@ const App = () => {
                   <div className="p-2 bg-blue-500 rounded-lg text-white">
                     <BookOpen size={18} />
                   </div>
-                  <span className="font-bold text-sm">Junior Warm-up (Year 5)</span>
+                  <span className="font-bold text-sm tracking-tight uppercase">Junior Warm-up (Year 5)</span>
                 </div>
                 {juniorPara && (
                   <button onClick={() => copyToClipboard(juniorPara)} className="text-slate-400 hover:text-blue-500">
-                    <Copy size={18} />
+                    <Copy size={20} />
                   </button>
                 )}
               </div>
@@ -332,6 +339,7 @@ const App = () => {
                 {loading ? (
                    <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-4">
                     <Loader2 className="animate-spin w-10 h-10 text-blue-500" />
+                    <p className="text-sm font-medium">Curating examples...</p>
                    </div>
                 ) : juniorPara ? (
                   <div className="animate-in fade-in duration-500">
@@ -344,7 +352,7 @@ const App = () => {
                         <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-500 mb-6 bg-emerald-500/10 px-3 py-1.5 rounded-full">
                           <CheckCircle size={14} /> Model Improvement
                         </div>
-                        <p className="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400">
+                        <p className="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 whitespace-pre-wrap">
                           {juniorImproved}
                         </p>
                       </div>
@@ -353,7 +361,7 @@ const App = () => {
                 ) : (
                   <div className="py-20 flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50 text-center">
                     <Pencil size={48} strokeWidth={1} />
-                    <p className="font-bold text-lg">Click Generate to begin.</p>
+                    <p className="font-bold text-lg text-slate-400">Select mode and generate a prompt.</p>
                   </div>
                 )}
               </div>
@@ -365,11 +373,11 @@ const App = () => {
                   <div className="p-2 bg-purple-500 rounded-lg text-white">
                     <BookOpen size={18} />
                   </div>
-                  <span className="font-bold text-sm">Senior Warm-up (Year 10)</span>
+                  <span className="font-bold text-sm tracking-tight uppercase">Senior Warm-up (Year 10)</span>
                 </div>
                 {seniorPara && (
                   <button onClick={() => copyToClipboard(seniorPara)} className="text-slate-400 hover:text-blue-500">
-                    <Copy size={18} />
+                    <Copy size={20} />
                   </button>
                 )}
               </div>
@@ -390,7 +398,7 @@ const App = () => {
                         <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-500 mb-6 bg-emerald-500/10 px-3 py-1.5 rounded-full">
                           <CheckCircle size={14} /> Model Improvement
                         </div>
-                        <p className="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400">
+                        <p className="text-xl leading-relaxed italic text-slate-500 dark:text-slate-400 whitespace-pre-wrap">
                           {seniorImproved}
                         </p>
                       </div>
@@ -398,7 +406,7 @@ const App = () => {
                   </div>
                 ) : (
                   <div className="py-20 text-center opacity-30 italic text-slate-400">
-                    Senior content will appear here.
+                    Senior content will appear here once generated.
                   </div>
                 )}
               </div>
