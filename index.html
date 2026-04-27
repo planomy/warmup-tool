@@ -3,697 +3,380 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Expression Sharpener (Offline)</title>
-
+  <title>Expression Sharpener</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons (optional). If it fails to load (blocked/offline), the app will still work. -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
-          },
-        },
-      },
+      theme: { extend: { fontFamily: { sans: ['DM Sans', 'sans-serif'], serif: ['DM Serif Display', 'serif'] } } }
     }
   </script>
-
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    body { transition: background-color 0.3s ease; }
+    body { font-family: 'DM Sans', sans-serif; transition: background-color 0.3s; }
+    h1 { font-family: 'DM Serif Display', serif; }
 
-    /* Weakness Colour Coding
-       Blue = bad starts | Red = passive/auxiliaries | Green = basic words
-       Purple = repetition | Yellow = stop words */
-    .hl-noun { background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #3b82f6; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-    .hl-passive { background-color: #fee2e2; color: #991b1b; border-bottom: 2px solid #ef4444; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-    .hl-basic { background-color: #dcfce7; color: #15803d; border-bottom: 2px solid #22c55e; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-    .hl-repeat { background-color: #f3e8ff; color: #6b21a8; border-bottom: 2px solid #a855f7; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
-    .hl-stop { background-color: #fef9c3; color: #854d0e; border-bottom: 2px solid #eab308; font-weight: 800; padding: 0 4px; border-radius: 4px; display: inline-block; line-height: 1.2; }
+    .hl-noun    { background:#dbeafe; color:#1e40af; border-bottom:2px solid #3b82f6; font-weight:700; padding:0 3px; border-radius:3px; }
+    .hl-passive { background:#fee2e2; color:#991b1b; border-bottom:2px solid #ef4444; font-weight:700; padding:0 3px; border-radius:3px; }
+    .hl-basic   { background:#dcfce7; color:#15803d; border-bottom:2px solid #22c55e; font-weight:700; padding:0 3px; border-radius:3px; }
+    .hl-repeat  { background:#f3e8ff; color:#6b21a8; border-bottom:2px solid #a855f7; font-weight:700; padding:0 3px; border-radius:3px; }
+    .hl-stop    { background:#fef9c3; color:#854d0e; border-bottom:2px solid #eab308; font-weight:700; padding:0 3px; border-radius:3px; }
 
-    /* Dark mode variants */
-    .dark .hl-noun { background-color: rgba(30, 58, 138, 0.9); color: #bfdbfe; border-color: #60a5fa; }
-    .dark .hl-passive { background-color: rgba(127, 29, 29, 0.9); color: #fecaca; border-color: #f87171; }
-    .dark .hl-basic { background-color: rgba(6, 78, 59, 0.9); color: #bbf7d0; border-color: #4ade80; }
-    .dark .hl-repeat { background-color: rgba(88, 28, 135, 0.9); color: #e9d5ff; border-color: #c084fc; }
-    .dark .hl-stop { background-color: rgba(113, 63, 18, 0.9); color: #fef08a; border-color: #facc15; }
+    .dark .hl-noun    { background:rgba(30,58,138,0.85);  color:#bfdbfe; border-color:#60a5fa; }
+    .dark .hl-passive { background:rgba(127,29,29,0.85);  color:#fecaca; border-color:#f87171; }
+    .dark .hl-basic   { background:rgba(6,78,59,0.85);    color:#bbf7d0; border-color:#4ade80; }
+    .dark .hl-repeat  { background:rgba(88,28,135,0.85);  color:#e9d5ff; border-color:#c084fc; }
+    .dark .hl-stop    { background:rgba(113,63,18,0.85);  color:#fef08a; border-color:#facc15; }
+
+    .mode-btn { transition: all 0.15s; }
+    .mode-btn.active { background:#2563eb; color:#fff; }
+    .dark .mode-btn.active { background:#3b82f6; }
   </style>
 </head>
-<body class="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+<body class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
 
 <div class="flex flex-col md:flex-row min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-8">
+  <aside class="w-full md:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6">
     <div>
-      <h1 class="text-2xl font-black text-blue-600 flex items-center gap-2">
-        <i data-lucide="pencil-line"></i> Sharpener
-      </h1>
-      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Offline Version</p>
-      <p id="stats" class="text-[10px] font-bold text-slate-400 mt-2"></p>
-      <p id="iconWarn" class="hidden text-[10px] font-bold text-amber-600 mt-2">Icons unavailable (Lucide didn’t load). App still works.</p>
+      <h1 class="text-3xl text-blue-600 dark:text-blue-400">Sharpener</h1>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Writing Exemplars</p>
     </div>
 
-    <div>
-      <label class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-2 block">Writing Mode</label>
-      <div class="flex p-1 bg-white dark:bg-slate-800 rounded-xl gap-1 border border-slate-200 dark:border-slate-700">
-        <button id="modeNarrative" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white">Narrative</button>
-        <button id="modeAnalytical" class="mode-btn flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-blue-600 dark:hover:text-blue-400">Analytical</button>
-      </div>
-    </div>
-
+    <!-- Navigation -->
     <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-      <button id="btnPrev" class="w-full bg-slate-200 dark:bg-slate-800 py-3 rounded-xl font-bold">Previous</button>
-      <button id="btnNext" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Next</button>
-      <button id="btnRandom" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold">Random</button>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navigate</p>
+      <div class="flex gap-2">
+        <button id="btnPrev" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-2.5 rounded-xl font-semibold text-sm transition">← Prev</button>
+        <button id="btnNext" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition">Next →</button>
+      </div>
+      <button id="btnRandom" class="w-full bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-xl font-semibold text-sm transition">Random</button>
+      <p id="stats" class="text-xs text-slate-400 text-center pt-1"></p>
     </div>
 
     <!-- Legend -->
-    <div class="border-t border-slate-200 dark:border-slate-800 pt-6">
-      <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest text-center">Highlight Key</h3>
-      <div class="grid grid-cols-1 gap-3 text-xs font-bold px-2">
-        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-blue-500 shadow-sm"></div> Bad start</div>
-        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-red-500 shadow-sm"></div> Passive / auxiliary</div>
-        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-green-500 shadow-sm"></div> Basic word</div>
-        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-purple-500 shadow-sm"></div> Repetition</div>
-        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400"><div class="w-4 h-4 rounded bg-yellow-400 shadow-sm"></div> Stop word</div>
+    <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Highlight Key</p>
+      <div class="space-y-2 text-xs font-semibold">
+        <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400"><div class="w-3.5 h-3.5 rounded bg-blue-500"></div>Weak sentence start</div>
+        <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400"><div class="w-3.5 h-3.5 rounded bg-red-500"></div>Passive / auxiliary verb</div>
+        <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400"><div class="w-3.5 h-3.5 rounded bg-green-500"></div>Basic / vague word</div>
+        <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400"><div class="w-3.5 h-3.5 rounded bg-purple-500"></div>Repeated word</div>
+        <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400"><div class="w-3.5 h-3.5 rounded bg-yellow-400"></div>Filler / stop word</div>
       </div>
     </div>
 
-    <button id="themeToggle" class="mt-auto py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold">
+    <button id="themeToggle" class="mt-auto py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-semibold text-sm transition">
       Toggle Theme
     </button>
   </aside>
 
   <!-- MAIN -->
-  <main class="flex-1 p-8 space-y-10">
+  <main class="flex-1 p-6 md:p-10 space-y-8">
 
-    <section class="bg-white dark:bg-slate-900 rounded-3xl border p-8 shadow">
-      <h2 class="font-black text-blue-500 mb-4">Year 5</h2>
-      <div id="jrContent" class="text-2xl md:text-3xl leading-relaxed"></div>
-    </section>
-
-    <section class="bg-white dark:bg-slate-900 rounded-3xl border p-8 shadow">
-      <h2 class="font-black text-purple-500 mb-4">Year 10</h2>
-      <div id="srContent" class="text-2xl md:text-3xl leading-relaxed"></div>
-    </section>
-
-    <!-- Built-in tests (developer console) -->
-    <details class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-      <summary class="font-bold text-slate-600 dark:text-slate-300 cursor-pointer">Diagnostics</summary>
-      <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-        Open DevTools Console to see test results. Tests run automatically on load.
+    <!-- Year 5 panel -->
+    <section class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <h2 class="font-bold text-blue-500 text-lg">Year 5</h2>
+        <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg gap-1">
+          <button data-level="Junior" data-mode="Narrative" class="mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-slate-500">Narrative</button>
+          <button data-level="Junior" data-mode="Analytical" class="mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-slate-500">Analytical</button>
+        </div>
       </div>
-    </details>
+      <div id="jrContent" class="px-6 py-6 text-lg md:text-xl leading-relaxed"></div>
+    </section>
+
+    <!-- Year 10 panel -->
+    <section class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <h2 class="font-bold text-violet-500 text-lg">Year 10</h2>
+        <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg gap-1">
+          <button data-level="Senior" data-mode="Narrative" class="mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-slate-500">Narrative</button>
+          <button data-level="Senior" data-mode="Analytical" class="mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-slate-500">Analytical</button>
+        </div>
+      </div>
+      <div id="srContent" class="px-6 py-6 text-lg md:text-xl leading-relaxed"></div>
+    </section>
 
   </main>
 </div>
 
 <script>
-  // -----------------------------
-  // Safe Lucide init
-  // -----------------------------
-  function initIconsSafe() {
-    try {
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-      } else {
-        const warn = document.getElementById('iconWarn');
-        if (warn) warn.classList.remove('hidden');
+// ─── MODE STATE ───────────────────────────────────────────────────────────────
+let modes = { Junior: 'Narrative', Senior: 'Narrative' };
+let index = 0;
+
+// ─── EXEMPLARS ────────────────────────────────────────────────────────────────
+
+const data = {
+  Narrative: {
+    Junior: [
+`It was the worst day of the year and I hadn't even gotten to school yet. The bus went past our stop without stopping and Mum was already at work so I had to walk. By the time I got there my bag was soaking and Mr Hendricks gave me a late slip even though I explained what happened. He didn't really listen, he just kept writing. I sat down at my desk and Callie looked at me like I smelled bad or something. I didn't even do anything to her. The maths sheet was already half done by everyone else so I just guessed the ones I missed and tried to look normal. At lunch I went to the library because the oval was loud and I didn't feel like talking to anyone. It was okay in there. Quieter.`,
+
+`There was a new kid in our class on Monday and nobody really talked to him at first. His name was Darius and he had this really cool pencil case with a dragon on it. I wanted to say something about it but I didn't know how without sounding weird. At lunch he sat at the end of our table and just ate his sandwich without looking up. Jordan tried to be funny and said something about his shoes which wasn't even that mean but Darius went really quiet after that. I felt bad but I didn't say anything and I kind of wish I had. After school I saw him at the crossing and I said I liked his pencil case and he said thanks and that was it but it felt like enough.`,
+
+`Our group project on volcanoes was due Thursday and we hadn't even started the poster yet. It was meant to be a group thing but basically I did everything. Priya kept saying she'd do the writing and then she just didn't. Jake cut out one photo and called it done. On Wednesday night I stayed up until like 9:30 finishing the labels and my mum had to help me stick the title on straight. The next day Mrs Clarkson held it up in front of the whole class and said it was excellent and everyone looked at me and smiled. Priya said "we worked really hard on it" and I nearly said something but I didn't. I just smiled too. It was a weird feeling, sort of good and sort of not.`,
+
+`The swimming carnival was the thing I was most dreading all year. I am not a bad swimmer but I'm not fast either and in my race there were kids from the squads who train every morning before school. When my name was called I walked to the blocks and my legs felt heavy. The starter gun went and I dived in wrong and swallowed water straight away. I came last by ages. When I climbed out everyone was already cheering for the next race and nobody was really watching anymore which was actually a relief. Dad was in the stands and he waved and gave me a thumbs up even though he obviously saw. On the way home he bought us Maccas and didn't mention the race once.`,
+
+`We were doing a class debate about whether school uniforms should be banned and I got put on the side that said yes, uniforms should stay. The problem was I actually agree with that so I thought it would be easy. It was not easy. When it was my turn I forgot my whole second point and just repeated the first one. I could feel my face going red. The other team had this girl Amelia who spoke really clearly without any notes and I kept looking at my cards. Our team lost by the judge's decision which was Ms Farrant and she said the other side had better evidence. After class Amelia said I made good points which was nice but I think she was just being polite.`,
+
+`Every Friday we have free reading and I always bring my own book from home because the class library is mostly stuff for little kids. But last Friday I forgot mine and had to pick something off the shelf. There was this old one with a cracked spine called Island of the Blue Dolphins and I'd never heard of it. I read the first chapter just sitting on the mat with everyone else and by the time Ms Rennie said pack up I was actually annoyed because I wasn't finished. I borrowed it and read it all weekend. I don't know why I'd never heard of it before. On Monday I put it back and someone else had already taken it which felt a bit like finding something and then losing it again.`,
+
+`The excursion to the botanical gardens was supposed to be educational but mostly it was just hot. We had to fill in a worksheet about native plants and the answers were on the little signs next to each one, so it wasn't really hard, just long. Hamish kept messing around near the pond and a teacher had to tell him to move back three separate times. At the end we had lunch in the shade and my sandwich was squashed flat from the bus ride. It tasted fine though. On the bus back I fell asleep against the window and woke up with my face sweaty against the glass which was embarrassing even though probably nobody saw. I'd go again though. The jacaranda section was actually really pretty.`,
+
+`There was a dog that kept sitting outside the school gate every afternoon. It wasn't anyone's dog, or if it was, the owner never came. It was a medium-sized brown dog with one ear that stuck up and one that flopped. Some kids tried to pat it and it let them but didn't wag its tail much. I started saving the last bit of my sandwich for it. Mum said I shouldn't feed strays because then they keep coming back, which I thought was the point. On the Thursday of the third week it wasn't there. I looked up and down the street but nothing. The next day it wasn't there either and I still had the sandwich piece in my bag. I threw it in the bin on the way home. I kept thinking about it for the rest of the week.`,
+
+`It was market day at school and our class was selling bookmarks we'd made in art. Mine were okay but Lily's were amazing, she'd done these tiny detailed drawings on each one and kids from other classes were buying them first. I was a bit jealous but it was also hard to be jealous because she's my friend and her drawings were actually that good. I sold four bookmarks which Mrs Singh said was a great effort. At the end we got to keep the money we made which was $6 for me. I bought a sausage sizzle and a juice and had fifty cents left. The sausage was slightly burnt on one side but that's actually the better side so it was fine.`,
+
+`The school play auditions were on a Tuesday and I signed up even though I was properly scared. I had practiced my monologue at home in the bathroom with the fan on so nobody could hear me. When my turn came I stood in front of Ms Okafor and the two other teachers and my voice came out weirdly high at the start. I got through the whole thing though and only forgot one line, which I covered by pausing like it was on purpose. The cast list went up Thursday and I got a part. Not the main one, but a real one with two actual scenes. Mum took a photo of the list on the noticeboard and sent it to Grandma.`,
+
+`The library book I returned was three weeks overdue and I owed $1.50 which doesn't sound like much but I didn't have any money on me. The librarian, Mr Osei, said he'd put it on my record and I could bring it tomorrow. I kept forgetting and he kept reminding me with this look that wasn't mean but was very patient in a way that somehow felt worse than being told off. I finally paid it on a Friday with coins I found in my school bag and an old twenty-cent piece from my dad's jar at home which Mr Osei said he couldn't accept, so I owed twenty cents still. I brought that the next Monday and he said thank you and stamped my card and that was the end of it.`,
+
+`We had to write a personal narrative for homework and it was supposed to be about a time we felt proud. I sat at the table for ages and couldn't think of anything. Mum said "what about the cross country?" and I said that didn't count because I didn't win, just finished. She said finishing was the point but that's what parents say. Eventually I wrote about the time I learned to ride my bike without training wheels in one afternoon and how my dad ran alongside me without holding the seat anymore and I didn't know until I looked back and he was way behind me, standing still. I wrote it really fast once I started. Ms Rennie gave it a green dot which means good and said "vivid memory" in the margin.`,
+
+`Art class on Wednesday was supposed to be portraits but mine kept looking like a potato with ears no matter what I did. I rubbed out the nose four times and the paper started going thin. Josh next to me was doing a really good one of his grandad with proper shadows and everything and I asked how he did the shading and he showed me this trick with the pencil on its side. Mine got slightly better after that but still not great. Ms Tran said "I like the character in this one" which I think was a kind way of saying it was weird. I actually don't mind. Some of the best ones in there looked kind of strange anyway.`,
+
+`Sports day was canceled twice because of rain and when it finally happened everything was muddy at the edges of the oval. The Year 5 relay was near the end and by then I was already tired from the long jump and the beanbag throw. Our team was me, Chloe, Devon and Nic. Devon dropped the baton on the second exchange and we lost by a lot. He felt really bad and went quiet. On the way to pack up I said the baton was slippery from the mud which was partly true. He said thanks for saying that. I think we both knew it wasn't just the mud but it seemed like the right thing to say at the time.`,
+
+`My friend Tomas dared me to eat a whole chilli at the school garden stall during lunchtime. The teacher running it said it was mild but it was not mild. I ate it anyway because Tomas was watching and also three other kids I didn't know that well. My mouth was burning for the rest of lunch and through the start of English. I drank two whole water bottles and kept having to ask to go to the bubbler. Mrs Clarkson asked if I was alright and I said yes, just thirsty. The burning faded around 2pm. Tomas said I was brave which I knew was also him admitting he wouldn't have done it. I felt fine about the whole thing, actually.`,
+
+`It was assembly and our class had to present the values award. I was supposed to hold up the certificate while Finn read out the winner's name, but I grabbed the wrong envelope and the certificate inside was last month's. Finn read out the name and I held up the wrong one and the teacher at the side of the stage was doing this small urgent waving thing at me. I swapped it out as fast as I could but the whole school had already seen. Some kids laughed, not mean laughing, just surprised laughing. Afterwards Ms Nair said it was fine and these things happen. It took about a week before I stopped thinking about it whenever I walked past the hall.`,
+
+`We did a science experiment with bicarb soda and vinegar and it was supposed to foam up in the bottle and push a cork off. Mine fizzed a lot but the cork just sort of slid to the side instead of popping. Everyone else's was the same except for Mia's which flew across the table and hit the whiteboard. Ms Garland said it was a great result but also said not to aim them at things. We had to write up what happened in our books and I put "the cork did not launch correctly" which Ms Garland changed to "the cork was displaced laterally" when she checked it. I wrote that down because it sounds much better.`,
+
+`The end of term concert was the night I had been nervous about for six weeks. I was in the recorder ensemble and we were playing two songs. Recorders sound terrible when you're learning them, everyone knows this, but we'd actually gotten pretty decent. During the actual performance though someone two rows back was playing the wrong note in the second song and I could hear it the whole time. I don't know if the audience heard. My parents said it sounded great. The video Mum took is shaky because she was also trying to hold an umbrella and her phone at the same time because they'd set the chairs up outside and it rained.`,
+
+`We were supposed to be working quietly on our reading comprehension but the kid next to me, Ryan, kept tapping his pencil without realising. I asked him to stop twice and he did for about ten seconds each time. I told Ms Farrant and she said use my strategies, which meant try to ignore it. I could not ignore it. By the end of the lesson I had answered maybe half the questions and the rest I just wrote something down so the page wasn't blank. When she marked them she put a question mark next to one of my answers which was obviously wrong and I understood why but I still felt annoyed. I told Mum at dinner and she said some people just do that and they don't even know they're doing it. That was somehow both unhelpful and also exactly right.`,
+
+`The best thing that happened all term was finding a twenty dollar note folded up near the bin outside the canteen. I stood there for a minute looking around to see if anyone was looking for it. Nobody was. I took it to the front office and the lady said if nobody claimed it in a week it was mine. I thought about it every day that week. On Friday she called my name at roll call and said to come collect it after school. I bought a new pack of Microns with it, the fine-liner pens I'd wanted since the start of the year. I used the leftover $4.20 on a Zooper Dooper. It felt like the best money I'd ever spent even though technically it wasn't mine to begin with.`
+    ],
+    Senior: [
+`She got the message at 11:47pm and read it three times because the first two times she didn't believe it. Jamie had told everyone. Not just the people she'd told him about, everyone. She put her phone face down on the mattress and stared at the ceiling. The fan was making its clicking sound, the same one it made every rotation, and she counted clicks. Forty-seven. Forty-eight. She picked the phone back up and looked at Instagram even though she knew she shouldn't. Forty-two likes on a post she hadn't written, a photo she hadn't taken, and a caption that used her name. She thought about texting him. She opened the chat, typed something, deleted it. Typed something else. Deleted that too. Outside a car went past with music on. She turned her lamp off and lay in the dark and tried to decide whether she was more angry or more embarrassed, and couldn't separate the two.`,
+
+`The night before the ATAR results dropped, Marcus cleaned his room. He didn't plan to, he just found himself pulling things from the shelf and wiping them down and putting them back. His mum had gone to bed early because she had an early shift and he was grateful for that, for the house being quiet. He'd told everyone he'd gotten into medicine. He'd said it casually at his cousin's birthday like it was something he already knew. He sat at his desk at 12:02am and his hand was literally shaking when he moved the mouse. The number came up and he sat with it for a while. Not high enough. He'd need to do something else, or wait, or try again. He closed the laptop and sat in the dark for a while. Then he went and stood in the backyard in the cold and looked at the neighbour's lemon tree over the fence. He'd tell his mum in the morning. He'd figure it out. He just needed tonight.`,
+
+`The team lost the grand final by two points. Afterwards in the change rooms nobody said much. Lachie sat with his boots still on and his hands hanging between his knees. The coach came in and said all the right things, about how proud he was, about the season they'd had. Lachie listened to him and nodded in the right places and felt nothing. Or not nothing. Something that was the opposite of nothing. Too full. His phone was full of messages he hadn't opened. On the bus home he sat next to Dex and they didn't talk, just watched the lights going past the window. When his stop came Dex said, "we were good though." Lachie said, "yeah." He walked the five minutes home and went straight to the shower and stood in it for a long time with the water too hot. The season was over. He'd think about what that meant later.`,
+
+`Priya had applied for the leadership role because everyone kept saying she should. Or maybe that wasn't true. She'd wanted it, she thought. She sat across from the panel and answered their questions cleanly. She knew what they wanted to hear and she said it. She believed most of it. Walking back to class she felt the strange flatness that comes after something you've prepared for. She got the role. Her name on the noticeboard on Thursday, her photo taken, her parents told. And then it started, the meetings that went until 5:30, the emails, the decisions that everyone had an opinion about. By term three she was tired in a way that sleep didn't fix. She was good at it, that was clear, everyone said so. She just didn't know anymore if she'd chosen it or been shaped into choosing it, and she wasn't sure which of those would be worse to admit.`,
+
+`The conversation with his dad about the future started the same way it always did. His dad got out the folder he kept on the kitchen bench, the one with the course guides and the highlighted pages. Daniel sat down and waited. His dad wasn't a bad person. He worked hard and he worried and he showed that by printing things out and colour-coding them. Daniel had an ATAR target and a backup plan and a backup to the backup. He had a spreadsheet of entry scores. What he didn't have was the feeling that any of it was actually for him. He looked at the folder and tried to find the right words. He said he'd been thinking. His dad said, good. He said he wanted to defer for a year and his dad put the folder down and looked at him for a long moment. Outside someone was mowing their lawn. The sound filled the silence.`,
+
+`The first time she skipped a class it was just the one and she sat in the library and felt guilty enough that she didn't do it again for three weeks. The second time she went to the café across the road and sat with a coffee she couldn't quite finish and read her book and tried to remember what the point of skipping had been. It started to happen more regularly, just occasionally, then every Thursday, then sometimes twice a week. She was still passing everything. She told herself that was the point. The work was being done, so what did it matter. But she knew that wasn't really what she was doing. She was practicing disappearing in small ways. Testing whether anyone would notice. Sometimes they did. Usually they didn't. She hadn't worked out what that told her yet.`,
+
+`After the funeral everyone came back to Nan's house and there was food on every surface. Relatives he hadn't seen in years stood around saying things about his grandfather that were true but also small, like they were all describing a different person. Tom sat on the back steps with his cousin Nell and they didn't talk about his grandfather at all, which was the right decision. Nell was in her last year of her psychology degree and she said she'd been reading about grief and how people go through it differently and Tom said he didn't think he'd started yet. She said sometimes that's how it goes. There was a moth on the door frame making a sound against the screen and he watched it for a while. Inside someone laughed loudly at something. He thought about how strange it was that you could be in a house full of people who loved each other and still feel like there was no one to talk to.`,
+
+`The protest was Yasmin's idea and within a week it had become something else. Other people joined, organised, posted, and by Thursday there were signs she hadn't designed with slogans she hadn't written. That wasn't bad, she kept telling herself. The cause was the same. But standing at the front on Friday morning she felt weirdly separate from it, like she was watching something she'd planted grow in a direction she hadn't expected. A reporter from the local paper asked her questions and she answered them carefully. That night online someone she didn't know with a blue tick posted about the protest and tagged her. By morning she had four hundred new followers. She sat with her phone in her lap and thought about how something you start because you believe in it can become something much bigger than belief very quickly, and how that's not entirely good or bad but it's definitely different.`,
+
+`The relationship ended in the school car park, which was stupid. Maya had always thought breakups happened somewhere meaningful or at least private. She sat on the passenger seat with the door open and her feet on the ground and he sat on the bonnet. He said everything carefully like he'd prepared it. Maybe he had. She couldn't tell if that was worse than if he hadn't. He wasn't angry and neither was she and there wasn't anyone to blame, which turned out to be the hardest part. She drove home and came in and her mum was cooking and asked how her day was and she said fine and went upstairs and lay on her bed with her shoes still on. She stared at her physics notes on the desk. She wasn't sad, exactly. She was just aware of the absence of something she'd gotten used to, like when a noise you stopped noticing suddenly stops.`,
+
+`In the time between handing his assignment in and the results coming back, Jake managed to forget he'd written it. He'd gotten into that state two weeks before the deadline where you just do the work, whatever it takes, and the words come because you can't afford them not to. He hadn't slept properly in four days. He ate at his desk. He submitted at 11:58pm and then played video games for three hours and slept twelve hours and woke up feeling like a different person in a good way. When Ms Varma handed it back with a Post-it note that said "see me," he felt sick for the whole of the next period. It turned out she wanted him to consider submitting it for a competition. He sat in her classroom after school and she said it was the most honest writing she'd read from a student in a long time. He didn't know what to do with that. He said thank you and walked to the bus stop and sat with it for the whole ride home.`,
+
+`The night she decided to tell her mum she rehearsed it in the shower. Full sentences. Transitions. She even practised the pause after she said the thing, so she'd have something to do with herself while she waited. She came downstairs and her mum was watching something on her laptop with headphones in and she sat down on the couch next to her. Her mum pulled one headphone out. Sophie said she needed to talk to her. Her mum closed the laptop. Sophie said the thing. Her mum didn't say anything for a moment and then she said, I know. Sophie said, what? Her mum said she'd known for about a year, she'd just been waiting for Sophie to bring it up. Sophie didn't know whether to be relieved or annoyed that her whole prepared speech was now unnecessary. She was both. They sat on the couch for a while. Her mum made tea. It was not a dramatic evening, which was, in its own way, exactly what Sophie had needed.`,
+
+`The mentor session with Mr Adebayo was supposed to be fifteen minutes and turned into an hour. He had this way of asking questions that made you keep talking when you thought you were done. Finn had gone in to talk about his uni application and come out having described his whole family, his relationship with his sister, what he'd felt like on exchange in Singapore, and a memory from primary school involving a cricket match he'd been thinking about for years without knowing why. He walked out to the corridor feeling slightly exposed, like he'd said more than he meant to. But also lighter. He walked to the canteen and bought a pie and stood in the sun and thought about the cricket match again. He'd been scared to field. He'd done it anyway. He hadn't thought about it as courage at the time. He thought about it now.`,
+
+`The night they snuck onto the school oval with the speaker and the two six-packs they'd gotten Bec's brother to buy was the night everything felt exactly right in a way that Jade knew, even while it was happening, wouldn't last. There were six of them and they lay on the grass and looked at the sky over the suburb, orange at the edges where the city pushed up into the dark. Someone played a song and someone else knew all the words and they ended up all singing parts of it, badly, not caring. Jade was lying next to Chloe and Chloe said, "we should do this every year." Jade said, "we will," because it seemed like the thing to say. She knew, probably, that they wouldn't. Life would move and people would scatter. But there was something about saying it that made it feel true for the length of the night, and she decided that was enough.`,
+
+`The interview for the selective school scholarship was in a room with a water carafe on the table, which Remy kept almost reaching for and stopping himself. There were three interviewers. They were kind in a professional way. They asked him about what he'd read, what he thought about, what he believed education was for. He had answers to most of it. One woman asked him what he'd failed at in the past year and he said he'd started a physics project he didn't finish and she asked why and he said honestly because he got interested in something else and followed that instead. She wrote something down. He didn't know if it was a good answer or not. On the train home his mum asked how it went and he said he didn't know. She said, if you were honest, that's the best you can do. He leaned against the window and watched the suburbs go past and thought about the project he hadn't finished and the one he had.`,
+
+`She started teaching herself guitar at the start of year ten and within a month her fingertips were sore in a way that was somehow satisfying. She'd practice after dinner in her room, the same four chords over and over until they sat in her hands without thinking. Her brother complained through the wall. She kept going. By term three she could play seven songs all the way through, not perfectly, but completely. She played at the school open mic night because her music teacher said she should and she sat on the stool in the drama space with the lights on her and played a song she liked and the room was quiet in the way that means people are listening. Afterwards someone she barely knew came up and said she made it look easy. She thought about saying, it isn't, it's actually months of sore fingers and annoying your brother. She said, thank you.`,
+
+`The volunteer shift at the food bank was compulsory for the Service Learning program but Marcus kept going back after the requirement was done. He didn't have a grand reason. It was something to do on Saturday mornings when he'd otherwise scroll his phone until midday. He got good at sorting donations, at knowing which cans to front, which bread was still in date. He got to know the other regular volunteers, mostly older people who'd been coming for years. He wasn't comfortable with the feeling that he was supposed to be doing this because it was good, because the truth was he was doing it partly because he liked the routine and partly because he liked the people. He mentioned this to his ethics teacher once and she said, does it matter? He thought about it for a while. He decided it didn't, mostly.`,
+
+`The gap between who she was at school and who she was at home had been getting wider for about two years. At school she was together, organised, funny in the dry way that teachers found acceptable. At home she stayed in her room a lot and often didn't feel like talking. Her parents noticed but didn't push it which she was grateful for most of the time and frustrated by occasionally. She hadn't found a way to say, I am fine and also very tired. She hadn't found a way to say, I like my life and also sometimes it feels like something I'm performing. She hadn't found language for it yet. She wrote in her journal sometimes and read it back and thought, that's closer. She filled a lot of pages looking for the sentence that said exactly what she meant and didn't find it, but she kept looking.`,
+
+`The community art project used the side wall of the library and fifteen students and six buckets of acrylic paint in a thirty-degree heatwave. It was supposed to represent the suburb's history. It turned into something else. People painted what they knew, their families, their food, a particular street corner, a cricket oval, a bus route. Mr Chu from art stood back most of the time and let them work, which was the right call. By the end of day two the wall was dense and busy and probably not what the council had imagined when they approved it. It was better than what the council had imagined. Ellie stood back and looked at it on the last afternoon and felt the uncomplicated pride of having made something real, something outside of marks and rubrics, something that would be there tomorrow.`,
+
+`He got his learner's and his mum took him to the car park of the old K-Mart every Sunday morning for six weeks. He was terrible at the start. He stalled at every give way. He couldn't judge the turning circle. His mum was patient in a focused way that he imagined took effort. By week four something clicked and he drove them home properly, through actual streets with actual traffic, and she only said something twice. When he passed his test she shook his hand formally and then laughed at herself and hugged him. He drove to school the next Monday, alone, and sat in the car park for five minutes before he went in because he wanted to hold the feeling a bit longer. It was a small thing. It felt, in that moment, like evidence of something.`,
+
+`The night before she left for the exchange program her mum knocked on her door and came in and sat on the bed and said she was proud of her. Ava had been mostly okay up until that point. She'd packed efficiently. She'd said her goodbyes. She'd been practical about it in a way that felt like control. But her mum sitting on the bed and saying I'm proud of you in that particular voice was too much and she cried for about ten minutes, ugly crying, into her mum's shoulder like she was eight. Her mum didn't say anything while it was happening, just held her and rubbed her back. When it stopped Ava said she was embarrassed and her mum said, you're going to do something hard. There's nothing embarrassing about that. Ava washed her face and finished packing. The next morning she was fine.`
+    ]
+  },
+  Analytical: {
+    Junior: [
+`In the book Wonder by R.J. Palacio, the author shows that kindness is more important than fitting in. The main character Auggie has a facial difference and starts at a new school where most kids don't know how to act around him. One of the most important parts is when Jack Will chooses to be Auggie's friend even when other kids are being mean. This is a big deal because it shows that doing the right thing is hard sometimes, especially when you might lose your own friends because of it. Palacio uses this friendship to show that being kind takes courage. Auggie also shows courage by going to school every day even though it is really difficult. The message of the book is that everyone deserves to be treated with respect no matter how they look. This is an important message because in real schools people are left out for all kinds of reasons. The book shows that one person being kind can actually change the whole atmosphere of a place.`,
+
+`The film Matilda, based on the Roald Dahl novel, uses exaggeration to show the difference between adults who help children and adults who try to control them. Miss Honey is patient and believes in Matilda from the beginning. Miss Trunchbull is the opposite and uses fear and punishment to control the whole school. The director makes Trunchbull much bigger and louder than everyone else, which is a way of showing how power can feel overwhelming to a child. Matilda uses her mind to fight back, which tells the audience that intelligence is a form of strength. The film is funny in parts but also has some genuinely scary moments, which makes sense because being a child around adults who don't listen to you can feel scary. Roald Dahl often wrote about adults who are cruel and children who are smarter than they're given credit for. Matilda fits this pattern perfectly and the ending, where she gets to stay with Miss Honey, feels earned because of everything she goes through to get there.`,
+
+`In the novel Holes by Louis Sachar, the main character Stanley is sent to Camp Green Lake for something he didn't even do. He has to dig holes every day in the hot sun, which the warden says builds character but is actually just used to find hidden treasure. Sachar uses the holes as a symbol. The boys are forced to dig into the earth but they're also being dug into, like their identities are slowly being worn down. Stanley's friendship with Zero is one of the most important parts of the story because it's the one real thing in a place that is mostly unfair and fake. The way Sachar mixes the past and the present storylines is clever because it shows that what happened to Stanley's family generations ago is still affecting him now. The book is about how bad luck and unfair systems can follow a person, but also about how loyalty can break those patterns. The ending is satisfying because justice happens in a way that feels believable and not too easy.`,
+
+`The film Zootopia shows that prejudice is something even well-meaning people can be guilty of. Judy Hopps wants to be a police officer in a city where predators and prey are supposed to live equally, but she still makes assumptions about Nick the fox just because of what he is. The film makes Judy the hero but also shows she is wrong sometimes, which is a more honest kind of storytelling. The metaphor the film uses about natural instincts versus choice is interesting because it asks whether animals, or people, can change. Nick's backstory, where he talks about being humiliated as a kid trying to join a scout troop, is one of the saddest moments in the film and it explains why he acts the way he does as an adult. Disney animations often try to say something about the real world through animal characters and Zootopia does this more directly than most. The main message is that stereotypes hurt everyone, including the people who benefit from them, and that changing a system starts with changing your own thinking.`,
+
+`Charlotte's Web by E.B. White is a story about friendship and about accepting that things end. Wilbur the pig and Charlotte the spider are very different but they care about each other in a way that feels genuine. Charlotte uses words to save Wilbur's life, which is interesting because words are also what the author uses to tell the whole story. White is saying that language matters and that the right words at the right time can actually change what happens. The saddest part of the book is when Charlotte dies alone at the fairground while Wilbur is taken home. White doesn't soften this or skip over it, which shows respect for the reader even though the book is for younger children. Wilbur naming Charlotte's children is a way of showing that friendship continues even after loss. The book teaches that loyalty and gratitude are worth something even when they can't stop bad things from happening. It's an old book but the ideas in it are still true.`,
+
+`The Giver by Lois Lowry imagines a future where everything is decided by a committee and people don't have real choices or real feelings. Jonas is chosen to be the Receiver of Memory, which means he's the only person who gets to learn what the world was actually like before. The contrast between the grey sameness of the community and the vivid memories Jonas receives is one of the most powerful things about the book. Lowry uses colour as a symbol of feeling and freedom. As Jonas starts to see colour, he also starts to understand what is being taken from everyone else. The moment he finds out what release really means is the turning point of the story and it's genuinely shocking, which the author sets up carefully so it doesn't feel cheap. The ending is left open, which some readers find frustrating, but it makes sense because the book is about uncertainty and hope rather than guaranteed happy endings. The question Lowry is asking is whether safety is worth giving up everything else.`,
+
+`In the novel The Outsiders by S.E. Hinton, the conflict between the Greasers and the Socs is used to explore how class shapes identity. Ponyboy is a Greaser but he reads and thinks in ways that don't fit the tough image his group is supposed to have. This tension is central to the book. Hinton wrote the novel as a teenager herself, which explains why the feelings feel so accurate. The relationships between the boys in Ponyboy's group are shown with genuine warmth, especially between Ponyboy and Johnny. Johnny's death is one of the most affecting moments in the novel because Hinton has taken so much time to show who he is before it happens. The line "stay gold" from the Robert Frost poem is used throughout the book to mean something about preserving innocence before the world gets complicated. The book argues that the labels people put on you, whether Greaser or Soc, say less about who you actually are than the choices you make and the people you choose to love.`,
+
+`The film Spirited Away by Hayao Miyazaki follows a girl named Chihiro who enters a spirit world and has to work in a bathhouse to earn her way back to her parents. On the surface it's a fantasy adventure but it is also about growing up, about what it means to work hard and to hold onto who you are when everything around you is strange and difficult. The bathhouse is run by Yubaba who steals names because without your name you forget yourself. This is a metaphor about identity. Chihiro remembers Haku's real name and this saves him, which continues the theme that knowing and using someone's real name is a form of deep care. Miyazaki uses the spirit world to show aspects of Japanese culture and tradition but the emotional core of the film is universal. Chihiro is not a typical hero because she doesn't have special powers, she just keeps going even when she's scared. The film is saying that persistence and empathy are more useful than strength.`,
+
+`In Roald Dahl's Charlie and the Chocolate Factory, the five children who win golden tickets represent different kinds of bad behaviour and Charlie represents something else entirely. Dahl uses the elimination of each child to make a point about a specific flaw, greed, selfishness, aggression, laziness. Charlie wins not because he is extraordinary but because he is decent, which is actually an unusual thing for a children's story to say. Most stories reward the special child who has hidden talents. This story rewards the ordinary, kind child. The chocolate factory itself is strange and dreamlike and a bit threatening, which reflects Wonka as a character. He is generous but also watching and judging the whole time. Dahl wrote the book partly as a critique of consumerism and the way children are marketed to, which is still very relevant. The illustrations by Quentin Blake add to the slightly unsettling tone because the characters are exaggerated in a way that makes them feel like cartoons of real people.`,
+
+`The novel Bridge to Terabithia by Katherine Paterson deals with grief in a way that is unusual for a children's book because it does not protect the reader from it. Jess and Leslie create an imaginary kingdom together and their friendship is shown as the most important thing in both their lives. When Leslie dies suddenly, the author does not give Jess time to adjust or prepare, which mirrors how sudden loss actually feels. The imaginary world of Terabithia is important because it represents what they built together and what Jess has to decide what to do with after Leslie is gone. The ending, where Jess builds a bridge so his little sister can enter Terabithia, is about passing something on and about continuing to live and imagine even after loss. Paterson has said the book was based on a real death she experienced, which explains the honesty of it. The friendship between Jess and Leslie is also notable because it crosses gender lines in a way that the book treats as completely normal, which is quietly important.`,
+
+`In the film Finding Nemo, Marlin's overprotectiveness comes from fear, which is understandable because he has already experienced real loss. The film shows that fear can limit the people you love as much as it limits yourself. Dory is the opposite of Marlin because she lives entirely in the present, partly because of her memory condition, and this makes her both comic and wise. The way the film uses the ocean as a setting is important because the ocean is genuinely dangerous but also vast and full of life. Marlin's journey is about learning that he cannot control everything and that letting Nemo take risks is part of loving him. Nemo's journey is about proving that he is capable despite his small fin. Both journeys mirror each other. The film is made by Pixar who are very good at putting genuinely sad or difficult content inside a family story and Finding Nemo is one of their best examples of this because the opening scene is one of the most affecting in any animated film.`,
+
+`The Hobbit by J.R.R. Tolkien follows Bilbo Baggins who is a hobbit who values comfort and routine above everything. He is chosen for an adventure he doesn't want and the novel is about what happens when someone like that is pushed beyond their limits. Tolkien uses Bilbo's growth carefully because Bilbo doesn't become a warrior, he becomes someone who is brave in particular moments when it matters. The scene with Gollum where they trade riddles is one of the most famous in the novel and it works because both characters are intelligent and the stakes feel real. Bilbo's choice not to kill Gollum when he has the chance is significant and Tolkien says later that it was the most important thing Bilbo ever did. The ring is introduced quietly which is interesting given what it becomes in The Lord of the Rings. The tone of The Hobbit is warmer and lighter than those later books but the ideas about courage and mercy are just as serious.`,
+
+`The novel The Boy in the Striped Pyjamas by John Boyne is told from the perspective of Bruno, a nine-year-old German boy whose father is a Nazi commandant. Boyne uses Bruno's innocence and ignorance as a narrative device to show the horror of the Holocaust through the eyes of someone who doesn't understand it. Bruno's friendship with Shmuel, who is on the other side of the fence at a concentration camp, is both the emotional centre of the story and its central metaphor. The fence is a physical representation of the separation created by ideology and power, but Bruno doesn't understand what the fence means. This is what makes the novel so disturbing. The ending is devastating and Boyne doesn't soften it. Some critics have argued about whether it is appropriate to tell this history from a German child's perspective, and whether Bruno's innocence is believable. These are worth thinking about. What the novel does successfully is show that systems of hatred affect everyone, including children who are born into them without choosing.`,
+
+`In the film The Lion King, the story draws on Shakespeare's Hamlet to tell a story about guilt, responsibility and growing up. Simba's belief that he caused his father's death is the central wound of the film and Scar uses that belief to control him. The film uses the visual language of light and dark very deliberately, with the Pride Lands becoming grey and dead under Scar's rule and returning to colour when Simba comes back. The scene where Simba sees his father's reflection in the water is one of the most visually striking in any Disney film and it works because it connects the themes of memory and identity directly to an image. Mufasa's voice saying "remember who you are" is essentially the message of the whole film. Simba's arc is about accepting that running from pain doesn't make it go away and that becoming who you're meant to be sometimes means walking back into the place that hurt you most. The film is emotionally honest for a children's animation, particularly in how it handles Mufasa's death without any softening.`,
+
+`The novel Storm Boy by Colin Thiele is a short book but it carries a lot of emotional weight. It is set on the Coorong in South Australia and the landscape is central to the story in a way that goes beyond setting. Thiele uses the coast as a reflection of the boy's inner life, isolated, beautiful, a bit wild. The relationship between Storm Boy and Mr Percival the pelican is the heart of the book and it works because Thiele shows it developing slowly through specific details rather than telling the reader how the boy feels. When Mr Percival dies saving the hunters, the tragedy feels earned because of everything that has been built before it. Hideaway Tom's relationship with Storm Boy is also important because it shows a different kind of quiet care. The book is ultimately about what happens when a deeply isolated child forms an intense bond and then loses it. Thiele does not make the ending comfortable and that honesty is part of why the book has lasted. The environmental message about the Coorong and its wildlife is woven into the story naturally rather than being stated.`,
+
+`In Harry Potter and the Philosopher's Stone, J.K. Rowling introduces a world that feels both completely different from the real world and deeply familiar. The division between the wizarding world and the muggle world maps onto ideas about belonging and exclusion that children experience in ordinary life. Harry's transition from being an outsider at the Dursleys to being celebrated at Hogwarts is satisfying but Rowling complicates it by making Harry uncomfortable with the attention. He doesn't want fame, he wants a family and a place to belong. Rowling uses the mirror of Erised in a pivotal scene where Harry sees himself surrounded by family. The mirror shows you what you most desire and the fact that Harry sees his family rather than wealth or power tells the reader who he really is. The friendship between Harry, Ron and Hermione is built gradually through shared experience including danger. The book is structured carefully with a mystery at the centre that rewards re-reading because the clues are planted early and honestly.`,
+
+`The film Bluey, or more accurately the television series Bluey, is an Australian animated show that appears to be for young children but regularly deals with adult emotions in ways that feel genuine. The character of Bandit, the father, is shown as someone who is trying his best but also tired and imperfect. Episodes like Sleepytime and The Show use animation and music to explore emotional depth that goes beyond typical children's television. Sleepytime in particular is remarkable because it animates Bingo's dream as a space journey while quietly showing Bandit and Chilli watching over her, which creates an image of parental love without any dialogue. The show's achievement is that it represents play as genuinely important rather than just something children do before real life begins. It treats the domestic and the ordinary as worthy of attention, which is also what good literature does. The show has a strong sense of place and the Brisbane setting gives it a distinctiveness that sets it apart from other family animations which tend to be set in vague American suburbia.`,
+
+`In the novel Matilda by Roald Dahl, the title character is a child with extraordinary intelligence living in a family that doesn't value intelligence at all. Dahl uses this contrast deliberately because it makes Matilda's situation both funny and genuinely painful. Her parents watch television all evening and don't notice that she can read complex novels by the age of four. Miss Honey is the character who sees her properly, which is part of why their relationship is so important. The power Matilda develops, moving objects with her mind, can be read as a metaphor for the power of a focused and active intellect in an environment that tries to suppress it. Trunchbull represents institutional cruelty, the kind that has authority behind it and is therefore harder to fight than ordinary meanness. Matilda defeats her through cleverness rather than strength. The book argues consistently that children are capable of more than adults give them credit for and that environments which underestimate children do real damage. The ending gives Matilda what she has always needed, a home where she is seen and valued.`,
+
+`The film Inside Out by Pixar takes the abstract concept of emotions and turns it into characters, which is a clever device because it makes the invisible visible. Joy, Sadness, Fear, Disgust and Anger all live inside Riley's head and the film shows that emotions work together rather than separately. The most important idea in the film is that Sadness is not a problem to be fixed. For most of the film Joy tries to keep Sadness away from the control panel because she believes happiness is the goal. The film argues that this is wrong. Sadness allows Riley to accept help and connect with her parents. The memory spheres turning from happy gold to sad blue, and being more valuable that way, is the film's central image. The character of Bing Bong, Riley's imaginary friend, is used to show what has to be let go for a child to grow up, which is handled with real sensitivity. Pixar films are often praised for being meaningful to adults but Inside Out is unusual because it is genuinely useful. It explains emotional complexity in a way that children can understand and use.`,
+
+`The novel The Secret Garden by Frances Hodgson Burnett uses the image of a locked garden to explore what happens when grief is allowed to take over a life. Mary Lennox arrives at Misselthwaite Manor as a difficult, selfish child and gradually becomes something else as she discovers and restores the garden. The garden works as a metaphor for the part of Colin's life that has been closed off by his father's grief and his own fear. Burnett's point is that living things, whether plants or people, need care and light and open air to grow. Dickon, the boy from the village who understands animals and plants, represents a different relationship with the natural world, one that is instinctive rather than fearful. The transformation of both Mary and Colin is tied directly to the transformation of the garden, and Burnett makes this connection clear without overstating it. The novel was written in 1911 and some of the language reflects the attitudes of that time, which is worth being aware of when reading it. What remains genuinely moving is the idea that healing is possible and that it often begins with something small and growing.`
+    ],
+    Senior: [
+`In Shakespeare's Macbeth, the title character's downfall is not entirely the result of the witches or Lady Macbeth. It is the result of choices he makes despite knowing they are wrong. The play makes this clear from the beginning. Macbeth's first soliloquy in Act 1 shows a man fully aware of the moral consequences of what he is considering. He lists reasons not to kill Duncan, his king is a guest, a good king, a man who trusts him. Then he admits his only reason for doing it is ambition. Shakespeare uses the aside and soliloquy throughout the play to give the audience access to Macbeth's reasoning, which means we cannot claim he doesn't understand what he's doing. This is what makes him a tragic figure rather than simply a villain. He has the capacity for conscience and chooses to override it. The dagger hallucination in Act 2 is often read as guilt manifesting before the act, which suggests that part of him already knows it is wrong before he does it. The play is essentially about the cost of suppressing your own moral judgement, and how that cost keeps increasing the further you go.`,
+
+`The Crucible by Arthur Miller was written in 1953 but is set in 1692, and the gap between those two dates is the point. Miller was living through the McCarthy era when people were accused of communist sympathies without evidence and careers and lives were destroyed. Salem's witch trials gave him a historical framework to examine the same dynamic: fear, accusation, the pressure to confess and name names. Abigail Williams is not simply a villain. She is a teenager who has been exploited by a man with power and is now using the only power available to her, which is accusation, to survive. The play asks you to understand how systems of fear corrupt everyone inside them. Even John Proctor, who is positioned as the moral centre of the play, is a flawed man whose pride ultimately costs him his life. His refusal to sign the confession is about his name, his reputation, which is partly admirable and partly ego. Miller doesn't give the audience a clean hero because the situation doesn't allow for one. The most frightening thing in The Crucible is not Abigail but the court, the institution that makes her accusations possible.`,
+
+`George Orwell's 1984 is a novel about power, specifically about how power sustains itself through the control of language and memory. The Party's slogan "War is Peace, Freedom is Slavery, Ignorance is Strength" works not by making logical sense but by demonstrating that logic can be overridden. If the Party says something is true, it becomes true, because the Party controls the evidence, the records and the people. Winston's job literally involves rewriting history to match the Party's current position, which means the past is unstable. Orwell coined the term doublethink to describe the ability to hold two contradictory beliefs simultaneously and accept both. This isn't stupidity, it's a survival mechanism in a totalitarian system. What makes the novel still relevant is that it identifies something real about the way authoritarian systems operate: they don't just oppress people physically, they try to make independent thought impossible. Julia represents a different kind of resistance, personal, sensory, body-based rather than intellectual, and Orwell complicates the novel by suggesting her approach might be more realistic, if less noble.`,
+
+`Jasper Jones by Craig Silvey is set in Corrigan, Western Australia in 1965, and the isolation of that setting is essential to how the novel works. Charlie Bucktin is a bookish thirteen-year-old who is suddenly pulled into a situation far beyond his experience when Jasper Jones, the town outcast, comes to his window one night. The novel uses the hot, close, small-town environment to show how prejudice operates when there is nowhere to go and no one to appeal to. Jasper, who is of mixed Aboriginal heritage, is automatically suspected of anything that goes wrong in Corrigan, and the novel shows this not through dramatic confrontation but through the constant low-level assumption of his guilt. Charlie's education across the summer is about learning to see this clearly. The cricket metaphor that runs through the novel is used to connect Charlie's understanding of the game with his understanding of fairness and the gap between how things are supposed to work and how they actually do. Silvey is doing something careful with the coming-of-age structure because the thing Charlie is coming of age into is the knowledge that the adult world is not just and the structures meant to protect people often protect the wrong people.`,
+
+`The Handmaid's Tale by Margaret Atwood is frequently described as a warning, but Atwood herself has said she was careful to include nothing in the novel that had not already happened somewhere in the world. Gilead is constructed from real historical examples of theocracy, totalitarianism and the specific targeting of women's bodies as political terrain. Offred's narration is unreliable in particular ways. She tells the reader at the end that she has constructed her account partly from memory and partly from imagination. This is not a flaw in the novel. It's Atwood's point that testimony from within an oppressive system is always compromised, always partial, always filtered through survival. The Aunts are among the most disturbing figures in the novel because they are women who enforce the system against other women, which Atwood uses to show how oppression recruits its victims to maintain itself. The red robes and white wings of the handmaids function as a visual symbol of how ideology is embedded in the body through dress. The reader's discomfort at the domestic details, the shopping, the walks, the rituals, is deliberate. Atwood wants the horror to feel ordinary.`,
+
+`In Markus Zusak's The Book Thief, Death narrates the story of Liesel Meminger in Nazi Germany. The choice of Death as narrator is unusual and specific. Death is not cruel in this novel, it is tired. It collects souls and observes human behaviour with something like weary compassion, frequently noting that it is haunted by humans, which inverts the usual relationship. The effect is that the violence and loss of the war is filtered through a perspective that has seen all of it and is still not indifferent, which prevents the novel from becoming numb. Liesel's relationship with words is central. She steals books. She reads in the bomb shelter while people are terrified. She writes her own story. Zusak uses this to argue that language is the thing that allows humans to preserve meaning even in conditions designed to destroy it. The relationship between Liesel and Hans Hubermann is the emotional centre of the novel. Hans is not a hero in a public sense. He is kind, consistent, and present, and the novel suggests that this kind of quiet courage is the most important kind. The ending is devastating but not hopeless because Liesel survives and carries the story, which is the point.`,
+
+`Peter Weir's film Dead Poets Society is about education, specifically about the tension between institutions that demand conformity and individuals who want to think for themselves. John Keating, played by Robin Williams, is a teacher who asks his students to question what they've been taught about literature, life, and their own futures. The school itself, Welton Academy, is shown as a place of tradition and pressure. Its four pillars are tradition, honour, discipline, excellence, and the film presents these not as values but as instruments of control. Todd Anderson's arc is the most significant in the film. He begins as a boy too afraid to speak and ends standing on his desk saying O Captain, My Captain, which is a small act but an enormous one given who he was at the beginning. Neil Perry's death is the tragedy the film turns on. Keating is blamed for it by the institution, which is both unfair and understandable from the school's perspective, because he did encourage the boys to seize the day, and Neil did. What the film argues is that the institution's way of managing this, expelling Keating and scapegoating free thought, is exactly the problem it has been diagnosing all along.`,
+
+`Baz Luhrmann's Romeo + Juliet, released in 1996, transposes Shakespeare's play to a contemporary American city while keeping the original text. This creates a specific kind of friction that is the point of the adaptation. Characters speak Elizabethan English while wearing suits and carrying guns branded Sword and Dagger. The Capulet and Montague families are corporate rivals. This juxtaposition asks the audience to think about whether the play's themes, family loyalty, youthful passion, the consequences of feuding, are specific to their historical moment or whether they are structural. Luhrmann's visual style is maximalist and deliberately operatic. He's not trying to make the story feel realistic. He's trying to make it feel how it feels, which is excessive and urgent and tragic. The casting of Leonardo DiCaprio and Claire Danes means the audience is encouraged to invest emotionally in two characters whose deaths they already know are coming. The film's use of television news footage and media tropes to frame the story is an early example of what would become a common technique, pointing to how modern media shapes narrative. Luhrmann argues, essentially, that this story is still happening.`,
+
+`Tim Winton's Cloudstreet follows two working-class Western Australian families who share a house across twenty years. The novel is epic in scope and domestic in focus at the same time, which is unusual. Winton is interested in ordinary people doing ordinary things and trying to make a life, and he writes this without condescension. The Lambs and the Pickles are both flawed families with complicated histories and Winton refuses to simplify them. Fish Lamb's accident at the beginning, his near-drowning that leaves him changed, operates throughout the novel as a spiritual wound. Fish wants to return to something, he can't quite articulate what, and the ending of the novel resolves this in a way that is both literal and metaphorical. The house on Cloud Street is almost a character in itself, with its history of pain and resistance from the Aboriginal woman whose presence haunts it. Winton doesn't use this lightly. He's writing about what it means to occupy land with a troubled history and how that history doesn't disappear just because the new occupants don't know about it. The novel is about community, about luck, about what it means to survive and what it costs.`,
+
+`Shakespeare's Othello is a play about jealousy, but more specifically it is about how jealousy is manufactured. Iago does not simply exploit Othello's existing insecurities. He constructs them, plants evidence, chooses timing, manages information. He is, in a sense, a kind of director of events. The soliloquies he shares with the audience make him almost a collaborator, talking the audience through his plan, which creates a troubling complicity. We know what he's doing and we watch it work. Othello is not presented as foolish. He is presented as a man in a position of genuine vulnerability: a Black man in a white Venetian society, recently married, somewhat outside the social codes of the world he's operating in. Iago targets these specific vulnerabilities. The handkerchief plot is extraordinary in its simplicity. A piece of cloth becomes evidence of infidelity because Iago controls how it is interpreted. The play is often studied in relation to race, and Othello's own internalisation of the racist assumptions of his society, his eventual belief that Desdemona's apparent betrayal fits some natural order, is part of what makes the tragedy so complete. He destroys the person who loves him most because he has learned to see himself through his enemy's eyes.`,
+
+`In Christos Tsiolkas's The Slap, a single act of violence, an adult man hitting a child at a suburban barbecue, is examined from eight different perspectives. Each narrator has a different relationship to the event and a different investment in what it means. This structure is unusual in literary fiction because it resists a single moral position. The reader is asked to understand each narrator's worldview fully enough to see why they interpret the same event so differently. The slap itself becomes a lens through which Australian suburban culture is examined, its class tensions, its racial dynamics, its complicated relationships with family, discipline, and masculinity. Tsiolkas is not making a simple argument about whether the slap was right or wrong. He's examining the entire ecosystem of assumptions and relationships that made the moment possible and that shapes the aftermath. Some characters read the slap as an assault. Others read it as a legitimate response to an undisciplined child. The novel argues that both of these readings are real and that the society that produced them is one we need to examine carefully. The Slap generated controversy in Australia partly because it refused to let its readers feel comfortable.`,
+
+`The film Gattaca imagines a future where genetic engineering has made a person's DNA the primary determinant of their opportunities. Vincent is genetically "in-valid" in a society that uses that term officially, and he assumes the identity of Jerome, a genetically valid man, to pursue his dream of space travel. The film uses this premise to ask whether determination and aspiration can override the structures designed to stop them. It is also a critique of meritocracy. Gattaca's society believes it has created the fairest possible system, one where ability is objectively measured, but the film shows that what is being measured was determined before birth, which is not merit at all. The cinematography is deliberately cool and clean, all glass and concrete and pale light, which visually communicates a world where efficiency has replaced warmth. Uma Thurman's character Irene has a slightly elevated heart-risk reading and it has shaped her entire life, kept her from things she wanted, in a system that claims to be rational. Vincent's success by the end of the film is not entirely triumphant because the system that excluded him is still operating. He got through because of deception, which the film acknowledges. The injustice remains.`,
+
+`Miller's Death of a Salesman is a play about the American Dream and what it costs people who believe in it absolutely. Willy Loman is a salesman whose self-worth is entirely tied to commercial success and the belief that being well-liked is the same as being valuable. The play is structured around Willy's fragmenting memory, moving between present scenes and recalled past without clear signalling, which puts the audience inside his deteriorating perspective. Biff, his son, is a figure of particular importance because he is the person who can see Willy clearly and it destroys him to do so. The confrontation near the end of the play where Biff tries to make Willy understand the truth about both of them is one of the most powerful scenes in American theatre. Miller is critiquing something specific: the way a particular version of masculinity tied to financial achievement is passed down between generations and what happens when it meets reality. The play was written in 1949 and its critique of capitalist values and the myth of success still resonates because the belief system Willy holds has not disappeared. If anything it's louder.`,
+
+`To Kill a Mockingbird by Harper Lee is narrated by Scout Finch, who is six at the beginning of the novel and nine by the end. Lee uses a child narrator for specific reasons. Scout doesn't understand the racial politics of Maycomb, Alabama, which means she observes them without the adult habit of normalising them. When she is confused about why Tom Robinson is obviously innocent but is still convicted, her confusion is the point. The reader shares it. Atticus Finch has been both celebrated and critiqued as a character. He is idealistic, principled, willing to defend a Black man in a town that will punish him for it. He is also a white man operating within the system, and his belief in the law as ultimately fair is something the novel complicates, because Tom Robinson dies, the law does not save him. Boo Radley's arc across the novel mirrors Tom Robinson's in interesting ways. Both are figures that the town either fears or projects onto. Scout's final understanding of Boo, that the stories told about him were wrong, is connected to her understanding of Tom. What she is learning across the novel is to see people clearly rather than through the stories others tell about them.`,
+
+`Cloudstreet is Tim Winton's most celebrated novel but it is also one of the most distinctly Western Australian books in the Australian literary canon. Winton writes the suburban Perth of the mid-twentieth century with an intimacy that comes from belonging, but also with a critical eye. The river in the novel is a recurring image. Characters are defined by their relationship to water, whether they are comfortable near it, whether it heals or frightens them. Fish Lamb's near-drowning in the opening chapters establishes water as both threat and promise, something that takes and something that, in the novel's logic, might also restore. The magical realist elements in the novel, the pig that seems to prophesy, the presence that haunts the house, sit alongside scenes of grocery shopping and shift work and family argument. Winton doesn't mark the magical as different in tone from the ordinary, which suggests his point is that the spiritual and the everyday are not separate categories. This is a distinctly Australian kind of literary sensibility, influenced by the landscapes and Indigenous presence that European settler culture has not always known how to account for. Cloudstreet accounts for it imperfectly but honestly.`,
+
+`The Truman Show, directed by Peter Weir in 1998, follows a man who has lived his entire life on a television set without knowing it. Every person in his life is an actor. Every event is scripted or managed. The film asks what it would mean to discover that your reality has been manufactured and that the people you love are performing that love for an audience. The character of Christof, the show's creator, is presented as genuinely believing he has given Truman something valuable, a safe, predictable, happy life. He is not simply a villain. He believes in the product. This is what makes him disturbing. Truman's growing awareness that something is wrong is shown through small disruptions, a light falling from the sky, a radio broadcast, his wife's strange moments of breaking character. He has been conditioned to explain these things away and he does, which is a comment on how well we can be trained to ignore evidence that contradicts our worldview. His final choice to walk through the door into the real world is triumphant but also frightening, because the film does not tell us what is on the other side. Weir is saying that reality, even an unknown one, is worth more than a comfortable fiction.`,
+
+`Shakespeare's The Merchant of Venice is a play that has been staged in radically different ways across its history, sometimes as a comedy, sometimes as an examination of antisemitism, sometimes as both simultaneously. Shylock is the character the play cannot decide what to do with. He is given one of the most powerful speeches in Shakespeare's canon, the "Hath not a Jew eyes" speech, which argues for common humanity with genuine force. He is also shown as vengeful and rigid. The play does not resolve this tension cleanly. Shylock loses everything in the trial scene, his bond, his money, his daughter, and is forced to convert to Christianity, which Elizabethan audiences may have read as mercy and which contemporary audiences typically read as an act of profound cruelty. How you stage that scene determines what kind of play this is. The Merchant of Venice rewards careful study precisely because it is uncomfortable and contradictory. It is a play written in a specific moment of English history when Jewish people were officially expelled from England, and it carries that history in ways that cannot be separated from the text. To engage with it seriously means sitting with that discomfort rather than resolving it.`,
+
+`In Liane Moriarty's Big Little Lies, three women in an affluent coastal town are implicated in a murder. The novel uses a suburban Australian setting to examine what happens when the surface of a life looks perfect and the interior is something else entirely. Moriarty writes in a satirical mode that allows her to be critical of her characters without dismissing them. The three central women, Madeline, Celeste and Jane, are all dealing with forms of harm and loss that the community around them is not designed to see or acknowledge. The novel's structure, which moves backwards from the fact of the murder, creates suspense around the revelation of who died and who was responsible, but the mystery is almost secondary to the emotional investigation. Celeste's storyline deals directly with domestic violence within a wealthy marriage, and Moriarty shows carefully how the economic and social dynamics of that situation make leaving feel impossible. The novel was adapted into a very successful television series, which extended some of these themes and arguably deepened Celeste's storyline. Big Little Lies is sometimes marketed as light reading, which undersells it. It is a carefully constructed novel about the gap between the life you present and the life you actually live.`,
+
+`Khaled Hosseini's The Kite Runner is a novel about guilt and the possibility of redemption. Amir, a wealthy Afghan boy, witnesses an act of violence against his servant and friend Hassan and does not intervene. This failure shapes his entire adult life. The novel is structured as Amir's attempt to understand and then address what he did, or didn't do, as a child. Hosseini uses the political history of Afghanistan, the Soviet invasion, the Taliban's rise and fall, not as backdrop but as direct consequence for the characters. Amir's class privilege in Kabul is part of what made his failure possible, and Hosseini examines this without letting Amir fully off the hook. Sohrab's storyline in the final section of the novel has attracted some criticism for using a child's trauma as a vehicle for Amir's redemption arc, which is a reasonable critique. The novel is most powerful in its middle sections when it is honest about the complexity of Amir's guilt, the ways he rationalised it, the way it followed him. The kite imagery throughout the novel connects freedom, childhood, and the things we lose through cowardice. The ending's famous line, "I ran," is deliberately ambiguous about whether genuine change is possible or whether Amir is simply performing it.`
+    ]
+  }
+};
+
+// ─── HIGHLIGHTER ──────────────────────────────────────────────────────────────
+const NOUN_STARTS = new Set(["the","it","a","an","he","she","his","her","this","these","those","they","then","there"]);
+const STOP_WORDS  = new Set(["and","but","so","then","just","really","very","quite","rather"]);
+const BASIC_WORDS = new Set([
+  "got","get","gets","getting","went","go","goes","going","ran","run",
+  "saw","see","sees","seeing","looked","look","looks","looking",
+  "show","shows","said","say","says","make","makes","made","making",
+  "big","small","nice","good","bad","things","stuff","feel","feels","felt"
+]);
+const AUX_WORDS = new Set(["was","were","is","are","be","been","being","has","have","had"]);
+
+function escapeHtml(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function highlightText(raw){
+  if(!raw) return "";
+  const sentences = raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [raw];
+  let out = "";
+  let lastKey = new Set();
+
+  for(const sent of sentences){
+    const s = sent.trim();
+    if(!s) continue;
+    const firstWordMatch = s.match(/^[A-Za-z']+/);
+    const firstWord = firstWordMatch ? firstWordMatch[0] : "";
+    const tokens = s.match(/[A-Za-z0-9']+|[^A-Za-z0-9' ]/g) || [];
+    const currentKey = new Set();
+
+    const rebuilt = tokens.map((tok, idx) => {
+      const isWord = /^[A-Za-z0-9']+$/.test(tok);
+      if(!isWord) return escapeHtml(tok);
+      const low = tok.toLowerCase();
+      const htmlTok = escapeHtml(tok);
+
+      if(idx === 0 && firstWord && NOUN_STARTS.has(firstWord.toLowerCase()) && low === firstWord.toLowerCase())
+        return `<span class="hl-noun">${htmlTok}</span>`;
+      if(STOP_WORDS.has(low)) return `<span class="hl-stop">${htmlTok}</span>`;
+      if(BASIC_WORDS.has(low)) return `<span class="hl-basic">${htmlTok}</span>`;
+      if(AUX_WORDS.has(low)) return `<span class="hl-passive">${htmlTok}</span>`;
+      if(low.length >= 6 && !STOP_WORDS.has(low) && !AUX_WORDS.has(low)){
+        currentKey.add(low);
+        if(lastKey.has(low)) return `<span class="hl-repeat">${htmlTok}</span>`;
       }
-    } catch (_) {
-      const warn = document.getElementById('iconWarn');
-      if (warn) warn.classList.remove('hidden');
-    }
+      return htmlTok;
+    }).join(" ").replace(/ +([,.!?;:])/g,"$1");
+
+    lastKey = currentKey;
+    out += rebuilt + " ";
   }
-
-  let currentMode = "Narrative";
-  let index = 0;
-
-  // -----------------------------
-  // Exemplar generation (offline)
-  // -----------------------------
-
-  const juniorNarrativeThemes = [
-    "football trial","camping trip","school assembly","lost dog","science fair","new student","rainstorm","library incident","birthday party","art competition",
-    "class debate","swimming carnival","group project","detention","school excursion","bus ride","soccer final","music audition","market day","neighbour argument"
-  ];
-
-  // Analytical exemplars reference real films/novels/plays.
-  const juniorAnalyticalThemes = [
-    { title: "Enola Holmes", type: "film", focus: "character", angle: "how Enola shows courage and independence" },
-    { title: "Spider-Man: Into the Spider-Verse", type: "film", focus: "theme", angle: "how Miles learns responsibility" },
-    { title: "Wonder", type: "novel", focus: "theme", angle: "how kindness changes a community" },
-    { title: "Holes", type: "novel", focus: "plot", angle: "how setbacks build resilience" },
-    { title: "Matilda", type: "novel", focus: "character", angle: "how Matilda challenges unfair adults" },
-    { title: "The Lion King", type: "film", focus: "theme", angle: "how guilt and identity drive Simba" },
-    { title: "Harry Potter and the Philosopher’s Stone", type: "novel", focus: "setting", angle: "how Hogwarts feels welcoming and strange" },
-    { title: "Finding Nemo", type: "film", focus: "character", angle: "how Marlin changes as a parent" },
-    { title: "The BFG", type: "novel", focus: "relationship", angle: "how Sophie and the BFG build trust" },
-    { title: "The Boy in the Striped Pyjamas", type: "novel", focus: "theme", angle: "how innocence shapes the ending" },
-    { title: "The Giver", type: "novel", focus: "theme", angle: "how rules control a society" },
-    { title: "Zootopia", type: "film", focus: "theme", angle: "how bias affects choices" },
-    { title: "Bridge to Terabithia", type: "novel", focus: "theme", angle: "how imagination helps characters cope" },
-    { title: "The Invention of Hugo Cabret", type: "novel", focus: "symbol", angle: "how the automaton represents hope" },
-    { title: "Storm Boy", type: "novel", focus: "setting", angle: "how the coast shapes mood" },
-    { title: "Bluey", type: "TV", focus: "message", angle: "how play teaches real lessons" },
-    { title: "The Outsiders", type: "novel", focus: "theme", angle: "how belonging and conflict are shown" },
-    { title: "The Hobbit", type: "novel", focus: "character", angle: "how Bilbo grows through risk" },
-    { title: "Charlotte’s Web", type: "novel", focus: "theme", angle: "how friendship is shown through actions" },
-    { title: "The Secret Garden", type: "novel", focus: "theme", angle: "how change and healing are shown" }
-  ];
-
-  const seniorNarrativeThemes = [
-    "corporate restructure","family argument","sporting failure","online conflict","job interview","community protest","relationship breakdown","public speech","exam pressure","team collapse",
-    "unexpected resignation","legal dispute","media scandal","board meeting","failed launch","ethical dilemma","hospital waiting room","airport farewell","property dispute","political rally"
-  ];
-
-  const seniorAnalyticalThemes = [
-    { title: "Romeo and Juliet", type: "play", focus: "theme", angle: "how conflict and impulsiveness drive tragedy" },
-    { title: "Macbeth", type: "play", focus: "character", angle: "how ambition corrupts decision-making" },
-    { title: "The Crucible", type: "play", focus: "theme", angle: "how fear spreads through a community" },
-    { title: "Jasper Jones", type: "novel", focus: "theme", angle: "how prejudice shapes the town" },
-    { title: "To Kill a Mockingbird", type: "novel", focus: "theme", angle: "how justice is challenged" },
-    { title: "1984", type: "novel", focus: "theme", angle: "how language controls thinking" },
-    { title: "The Handmaid’s Tale", type: "novel", focus: "theme", angle: "how power controls bodies" },
-    { title: "The Great Gatsby", type: "novel", focus: "theme", angle: "how wealth creates illusion" },
-    { title: "Frankenstein", type: "novel", focus: "theme", angle: "how responsibility is avoided" },
-    { title: "The Hunger Games", type: "novel", focus: "theme", angle: "how spectacle manipulates people" },
-    { title: "The Hate U Give", type: "novel", focus: "theme", angle: "how voice becomes resistance" },
-    { title: "The Truman Show", type: "film", focus: "theme", angle: "how control and surveillance shape identity" },
-    { title: "Gattaca", type: "film", focus: "theme", angle: "how inequality is built into systems" },
-    { title: "Dead Poets Society", type: "film", focus: "theme", angle: "how conformity pressures students" },
-    { title: "The Merchant of Venice", type: "play", focus: "theme", angle: "how prejudice shapes judgment" },
-    { title: "Animal Farm", type: "novel", focus: "theme", angle: "how slogans replace truth" },
-    { title: "The Curious Incident of the Dog in the Night-Time", type: "novel", focus: "voice", angle: "how narration shapes reader trust" },
-    { title: "Othello", type: "play", focus: "theme", angle: "how jealousy is engineered" },
-    { title: "The Dressmaker", type: "film", focus: "theme", angle: "how gossip and power ruin lives" },
-    { title: "The Book Thief", type: "novel", focus: "theme", angle: "how words matter in wartime" }
-  ];
-
-  // Phrase banks: intentionally flawed (repetition, weak starts, auxiliaries, stop words, basic verbs)
-  const JN_open = [
-    "The day was meant to be normal, but it was not.",
-    "The morning started like any other and it felt easy at first.",
-    "The plan sounded simple in class, but it was harder in real life.",
-    "The whole thing was talked up all week and it was built up.",
-    "The bell went and the room was already noisy.",
-    "The teacher was calm, but the class was not.",
-    "The bus ride was quiet at first, but it did not stay quiet.",
-    "The oval looked normal, but it felt different today.",
-    "The line at the canteen was long and it was already frustrating.",
-    "The group was meant to work together, but it was awkward straight away."
-  ];
-
-  const JN_mid = [
-    "It was handled in a rushed way and it was messy, and the same point was said again and again.",
-    "He went over it in his head and he got stuck on the same detail, and he got more stressed.",
-    "They went along with it and they just did what was expected, but they were not really sure why.",
-    "It was meant to be simple but it got complicated and it got annoying, and it was repeated in their heads.",
-    "The instructions were read out and they were read out again, but the group still got confused.",
-    "There was a moment where everyone looked, and then everyone looked away, and it felt uncomfortable.",
-    "Then the small mistake was noticed and it was noticed again, so it started to feel bigger than it was.",
-    "The comments were made quietly, but they were still heard, and they made it worse.",
-    "It was said it would be fine, but it did not feel fine, and it kept feeling the same.",
-    "They tried to fix it quickly, but it was not fixed, and the problem stayed there."
-  ];
-
-  const JN_end = [
-    "Then it was explained as a lesson and it was said clearly, so the message felt obvious and basic.",
-    "The ending was accepted quickly and it was not explored much, so it felt unfinished.",
-    "There was a result and it was announced, and it was talked about again, and it was not very deep.",
-    "The outcome was called fair but it was not explained properly, so it felt a bit empty.",
-    "The class moved on fast and it was like it never happened, even though it did.",
-    "Then it was written down in the diary and it was left there, but the feeling stayed.",
-    "The apology was said and it was said again, but it still felt awkward.",
-    "The final bell went and it was a relief, but the day still felt messy.",
-    "The result was meant to feel good, but it was just okay and it was not exciting.",
-    "There was a quiet moment at the end and it was finally calm, but it did not fix everything."
-  ];
-
-  const JA_open = [
-    "The text is explained in a straightforward way and it is mostly summarised first.",
-    "The film is introduced and it is described as entertaining, so the point is simple.",
-    "The novel is talked about as meaningful and it is said to teach a lesson.",
-    "The story is presented as important and it is described as showing a message.",
-    "The main character is described as brave and it is said the audience should respect them.",
-    "The topic is introduced and it is claimed that the message matters.",
-    "The scene is mentioned early and it is treated as the key moment.",
-    "The writer says the text is powerful and it is explained in a basic way.",
-    "The film is described as emotional and it is said to make the viewer feel a lot.",
-    "The novel is introduced as inspiring and it is said to show growth."
-  ];
-
-  const JA_mid = [
-    "It is supported with an example, but it is not analysed deeply and it stays general.",
-    "The evidence is included and it is linked to the claim, but the explanation is surface level.",
-    "The technique is named and it is explained, but it is explained in a basic way.",
-    "The scene is described and it is described again, so it starts to sound repetitive.",
-    "It is said the character learns something, but it is not shown with detailed reasoning.",
-    "The language is called effective and it is said again, but it is not unpacked properly.",
-    "The example is mentioned, but it is rushed and it does not go into depth.",
-    "The point is made clearly, but it is too obvious and it is not very insightful.",
-    "It is explained simply and it is not connected to bigger ideas in a detailed way.",
-    "The paragraph keeps using the same words and it keeps saying the same point."
-  ];
-
-  const JA_end = [
-    "Then the point is restated so it is obvious, but it is not insightful.",
-    "The conclusion is clear and it is repeated, so it feels predictable.",
-    "There is a message and it is explained again, which makes it clear but not complex.",
-    "The final sentence tells the reader what to think and it does not explore alternatives.",
-    "The ending is summed up quickly and it is not challenged, so it stays basic.",
-    "Then it is said the lesson matters, but it is not developed further.",
-    "The idea is repeated one more time and it is left there.",
-    "The conclusion sounds confident, but it is still general and not detailed.",
-    "There is a final claim and it is repeated, which makes it clear but plain.",
-    "The paragraph finishes by repeating the same message and it does not add new detail."
-  ];
-
-  const SN_open = [
-    "The situation was framed as serious and it was treated as high stakes.",
-    "The pressure was present from the start and it was noticed straight away.",
-    "The event was described as significant and it was meant to feel urgent.",
-    "The conflict was introduced early and it was carried through the scene."
-  ];
-
-  const SN_mid = [
-    "It was suggested that change was coming, but it was not developed with subtle detail, and the same concerns were repeated.",
-    "He went over the same doubts and he repeated the same reasoning, so the tension stayed flat instead of rising.",
-    "There were decisions that were made and they were questioned, but they were not properly justified, and the logic stayed vague.",
-    "It was described in broad terms and it was explained again, which makes it sound controlled rather than real."
-  ];
-
-  const SN_end = [
-    "The consequences were described generally and they were not examined closely, so the complexity was reduced.",
-    "The resolution was accepted too quickly and it was not interrogated, which made it feel predictable.",
-    "There was an impact and it was mentioned, but it was not explored critically, so it felt thin.",
-    "The ending was presented as final and it was not questioned, even though questions were still there."
-  ];
-
-  const SA_open = [
-    "The text is introduced and it is positioned as significant within its context.",
-    "The film is discussed and it is framed as socially relevant.",
-    "The novel is examined and it is treated as an important commentary on society.",
-    "The play is analysed and it is described as still relevant, even now."
-  ];
-
-  const SA_mid = [
-    "It was argued that the influence was strong but it was explained in general terms rather than detailed analysis.",
-    "Statistics were included and they were used to reinforce the claim, yet the reasoning remained surface level.",
-    "Examples were repeated and they were connected loosely to the broader argument, so the logic felt circular.",
-    "It was stated confidently and it was restated, but it was not backed by layered evidence."
-  ];
-
-  const SA_end = [
-    "The implications were mentioned but they were not explored in a complex or critical way.",
-    "The conclusion was clear and it was repeated, so the argument felt predictable rather than nuanced.",
-    "There was a final claim and it was asserted, but it was not tested against counterarguments.",
-    "The final paragraph summarises again and it does not add depth, so it feels repetitive."
-  ];
-
-  function pick(arr, i, offset=0){
-    return arr[(i + offset) % arr.length];
-  }
-
-  function wordCount(text){
-    return (text.trim().match(/\b\w+\b/g) || []).length;
-  }
-
-  function ensureMinWords(text, minWords, level){
-    // append deliberately flawed filler until we hit the requirement
-    const fillersJ = [
-      "The point was said again and it was said again so it felt repetitive and basic.",
-      "It was meant to be clear but it was just repeated, and it was not explained in a deeper way.",
-      "Then it was added again and it was added again, so it sounded obvious and not very thoughtful."
-    ];
-    const fillersS = [
-      "The same wording was used again and it was used again, so the paragraph relied on repetition rather than development.",
-      "It was written in a general way and it was repeated, which reduces precision and weakens the overall impact.",
-      "There were claims that were made and they were restated, so the argument felt circular and not analytically sharp."
-    ];
-
-    let out = text;
-    const pool = level === 'Junior' ? fillersJ : fillersS;
-    let safety = 0;
-    while (wordCount(out) < minWords && safety < 10) {
-      out += " " + pool[safety % pool.length];
-      safety++;
-    }
-    return out;
-  }
-
-  function buildJuniorNarrative(theme, i){
-    // 20 handcrafted Year 5-style narrative paragraphs (third person only, flawed deliberately)
-
-    const paragraphs = [
-`The football trial was held after school and it was hotter than everyone expected. The grass was dry and it was scratching at his legs while he waited for his turn. He got the ball and he got nervous, and he kicked it too fast and it went wide. The coach was watching and he was writing something down, which made it worse and worse. It was only one kick but it felt big and it felt important. The whistle went and it was over, but it stayed in his head and it stayed there all night.`,
-
-`The camping trip started well but it was already raining by the time the tents were put up. The ground was wet and it was muddy, and the shoes got dirty straight away. He tried to help but he got in the way and he knocked a pole over. It was said that it was fine, but it did not feel fine and it did not feel calm. The fire was finally lit and it was small and weak. The night was quiet after that, but the mistake was still there and it was still bothering him.`,
-
-`The school assembly was meant to celebrate awards and it was supposed to be exciting. The hall was loud and it was packed, and his name was on the list. He walked up and he felt small and he felt strange, and he almost tripped on the step. The applause was heard and it was polite, but it did not sound big. The certificate was given and it was held tightly in his hand. The photo was taken and it was done quickly, and then it was over before it even felt real.`,
-
-`The lost dog was found near the oval and it was shaking in the shade. The collar was loose and it was dirty, and it looked small and scared. He went closer and he got worried, and he called out but it did not come. The gate was left open and it was probably his fault, which was a bad thought and it was repeated in his head. The owner was called and she was crying when she arrived. The dog was taken home and it was safe, but the guilt was still there.`,
-
-`The science fair project was built on the kitchen table and it was messy from the start. The cardboard was cut wrong and it was cut again, and the glue got everywhere. He said it would work and he said it again, but it did not look good and it did not look strong. The volcano was painted red and it was bright, but it was also cracked at the side. The judges were walking slowly and they were looking carefully. The experiment was shown and it was small, and the reaction was not very big.`,
-
-`The new student was sitting alone and it was obvious to everyone. The lunch tables were full and they were loud, and no one moved. He stood up and he got unsure, and he asked if the new student wanted to sit with them. The answer was quiet and it was short, but it was enough. The conversation was awkward and it was repeated with the same small questions. The bell rang and it was a relief, but the silence from earlier was still remembered.`,
-
-`The rainstorm came quickly and it was stronger than it looked on the radar. The sky was dark and it was heavy, and the gutters were overflowing. He ran inside and he got scared, and he watched the trees bend and bend again. The power was lost and it was quiet in a strange way. The candles were lit and they were small and flickering. The storm passed after a while and it was calm again, but the fear from before was not gone.`,
-
-`The library incident happened during silent reading and it was embarrassing. The chair was pulled out and it was louder than expected when it scraped. He dropped his book and he got flustered, and the pages went everywhere. The class was staring and they were whispering, which made it worse and worse. The librarian was walking over and she was not smiling. The apology was said and it was said again, but it still felt awkward and it felt long.`,
-
-`The birthday party was planned for weeks and it was talked about every day. The decorations were big and bright, and the cake was small and simple. He got excited and he got carried away, and he opened a gift too early. It was meant to be funny but it was not funny and it was not smart. The music was playing and it was loud, and people were dancing anyway. The night ended with photos that were taken quickly, and it was over faster than expected.`,
-
-`The art competition was announced and it was said to be important. The theme was freedom and it was confusing at first. He drew something small and he drew it again, because it did not look right and it did not look strong. The paint was mixed badly and it was mixed again, which made it muddy. The teacher was walking around and she was watching closely. The winner was called and it was not him, and it was accepted even though it felt disappointing.`,
-
-`The class debate was about homework and it was serious for some reason. The arguments were said loudly and they were said again, and the same points were repeated. He stood up and he got nervous, and he forgot what he was going to say. The words were simple and they were rushed, and they did not sound smart. The timer went and it was finished quickly. The result was announced and it was close, but it did not really change anything.`,
-
-`The swimming carnival was hot and it was crowded at the pool. The race was short but it was tiring, and the water felt cold and heavy. He jumped in and he got behind straight away. The whistle was blown and it was sharp, and the splashing was loud. He tried to catch up and he tried again, but the finish line was already there. The ribbon was touched and it was done, and it was not the result he wanted.`,
-
-`The group project was assigned on Monday and it was due on Friday. The plan was simple and it was written down, but it was not followed. He did his part and he did it again to be safe, but the others were not finished and they were not ready. The slides were messy and they were rushed at the end. The presentation was given and it was awkward, and the marks were lower than expected.`,
-
-`The detention was given after class and it was quiet in the room. The clock was ticking and it was slow, and the silence felt big. He was told to write lines and they were written again and again. It was meant to teach a lesson but it did not feel deep and it did not feel clear. The bell rang and it was freedom, but the mistake from earlier was still remembered.`,
-
-`The school excursion to the museum was meant to be fun and it was organised carefully. The bus ride was long and it was loud, and someone was singing badly at the back. He walked through the exhibits and he got bored, even though it was said to be interesting. The guide was talking and she was explaining, but the words were big and confusing. The day ended with a worksheet that was half finished and it was handed in anyway.`,
-
-`The bus ride home was crowded and it was noisy as usual. The seat was small and it was uncomfortable, and the bag was heavy on his lap. He got annoyed and he got quiet, and he stared out the window at the same houses again and again. The driver was calling out stops and he was impatient. The final stop was reached and it was relief, but the long day was still there in his head.`,
-
-`The soccer final was played under bright lights and it was tense from the start. The crowd was loud and it was distracting, and the score was tied. He got the ball and he got scared, and he passed it too quickly. The shot was missed and it was a big moment that was lost. The whistle blew and it was over, and the loss was hard to accept.`,
-
-`The music audition was held in a small room and it was silent before he started. The piano was slightly out of tune and it was bothering him. He began to sing and he got shaky, and the high note was not strong and it was not clear. The teacher was listening and she was writing something down. The final note was finished and it was done, and it did not feel perfect.`,
-
-`The market day stall was set up early and it was colourful at first. The signs were big and bright, and the prices were small and confusing. He got busy and he got tired, and he forgot to give someone the right change. It was noticed later and it was awkward. The money was counted at the end and it was less than expected, which was disappointing and it was frustrating.`,
-
-`The neighbour argument was heard through the fence and it was loud. The voices were sharp and they were angry, and the words were repeated again and again. He stood still and he got uncomfortable, and he did not know where to look. The door was slammed and it was sudden, and the street went quiet after that. The problem was not his but it still felt close and it still felt heavy.`
-    ];
-
-    return ensureMinWords(paragraphs[i], 70, 'Junior');
-  }
-
-  function buildJuniorAnalytical(item, i){
-    // Year 5 Analytical — Strict TEEAL structure
-    // Topic → Evidence → Explanation → Analysis → Link
-
-    const moments = {
-      "Enola Holmes": "In the scene where Enola escapes on her bike, she rides through the busy streets alone.",
-      "Spider-Man: Into the Spider-Verse": "In the leap of faith scene, Miles jumps from the building while the music builds.",
-      "Wonder": "In the precept scenes, Mr Browne shares quotes about kindness.",
-      "Holes": "When Stanley keeps digging holes in the heat, the action is repeated again and again.",
-      "Matilda": "In the classroom scenes with Miss Trunchbull, exaggeration is used to make her seem cruel.",
-      "The Lion King": "In the stampede scene, Simba is blamed for his father’s death.",
-      "Harry Potter and the Philosopher’s Stone": "In the Sorting Hat scene, Harry waits to be chosen.",
-      "Finding Nemo": "In the first day of school scene, Marlin keeps warning Nemo.",
-      "The BFG": "When Sophie sees the dream jars, description is used to make them seem magical.",
-      "The Boy in the Striped Pyjamas": "In the fence scenes, Bruno keeps meeting Shmuel secretly.",
-      "The Giver": "When Jonas sees the apple change, it shows something is different.",
-      "Zootopia": "In the DMV scene with the sloths, humour is stretched out.",
-      "Bridge to Terabithia": "When Jess and Leslie cross the rope swing, the risk is highlighted.",
-      "The Invention of Hugo Cabret": "In the train station scenes, the clocks are described in detail.",
-      "Storm Boy": "When Storm Boy raises Mr Percival, the coastal setting is calm.",
-      "Bluey": "In Sleepytime, the space images are shown while Bingo dreams.",
-      "The Outsiders": "In the rumble scene, the fighting is shown as intense.",
-      "The Hobbit": "In the riddles scene with Gollum, Bilbo answers carefully.",
-      "Charlotte’s Web": "When Charlotte writes words in the web, people start to notice Wilbur.",
-      "The Secret Garden": "When Mary finds the hidden key, the mystery begins."
-    };
-
-    const topic = `The ${item.type} "${item.title}" shows ${item.angle} and it is clearly presented to the audience.`;
-    const evidence = moments[item.title] || `In a key scene from ${item.title}, an important moment is shown.`;
-    const explanation = "This technique is used and it is meant to help the audience understand the main idea.";
-    const analysis = "It shows the character changes or learns something, but it is explained in a simple way and it repeats the same idea.";
-    const link = "The text shows that this lesson matters and it is important for young people to understand.";
-
-    const base = `${topic} ${evidence} ${explanation} ${analysis} ${link}`;
-
-    return ensureMinWords(base, 70, 'Junior');
-  }
-
-  function buildSeniorNarrative(theme, i){
-    // 20 handcrafted Year 10-style narrative paragraphs (third person only, flawed deliberately)
-
-    const paragraphs = [
-`The hospital waiting room was too bright and it was colder than it needed to be. The chairs were lined up and they were stiff, and the clock was louder than usual. He kept checking his phone and he kept checking the door, even though nothing was changing. The nurse was walking past and she was calm, which made it worse because it meant time was normal for her. The doctor was inside and he was deciding something important, and that thought was repeated again and again. The vending machine was humming and it was the only sound that stayed steady. The update finally came and it was short and simple, but it did not explain everything and it did not fix the fear that had already settled in the room.`,
-
-`The job interview was held in a glass office and it was meant to feel professional. The handshake was firm and it was brief, and the questions were simple at first. He got confident and he got too confident, and he answered too quickly. The panel was listening and they were nodding, but the smiles were small and controlled. The example he gave was repeated and it was not very detailed, even though it sounded impressive in his head. The silence after one question was long and it was uncomfortable. The final thanks were exchanged and it was over, but the mistakes were replayed again and again on the walk back to the car.`,
-
-`The airport farewell was rushed and it was louder than expected. The announcements were constant and they were sharp, and the line at security was slow. He said it would be fine and he said it again, but the words were thin and they were obvious. The hug was tight and it was held for longer than usual. The boarding call was made and it was final, and the distance suddenly felt big and it felt permanent. The wave through the glass was small and it was repeated until it was too far to see. The car park was quiet afterwards and it was strangely empty, even though nothing had really changed yet.`,
-
-`The exam paper was placed face down and it was heavier than it looked. The instructions were read and they were repeated, and the room was silent except for coughing. He turned the page and he got stuck on the first question, which was simple but it did not feel simple. The pen was moving and it was scratching, and time was passing too quickly. He wrote an answer and he wrote it again in a different way, which made it longer but not better. The clock was watched and it was watched again. The final minute was called and it was panic, even though the outcome was already decided by the earlier hesitation.`,
-
-`The family argument started in the kitchen and it was not meant to escalate. The plates were stacked and they were loud against the bench, and the voices were rising slowly. He said one thing and he said it again, which only made it worse. The history was brought up and it was repeated, and the same old mistakes were listed again and again. The door was slammed and it was sudden. The silence after was heavy and it was awkward, but the problem was not solved and it was not really discussed properly either.`,
-
-`The online message was sent late at night and it was not thought through properly. The words were typed and they were deleted, and then they were typed again. He thought it was honest and he thought it was clear, but it was read differently and it was shared. The replies were quick and they were sharp, and the screen felt small and close. The explanation he wrote was long and it was defensive. The conversation was screenshotted and it was saved, and the mistake was permanent in a way that felt bigger than the original issue.`,
-
-`The community protest was organised quickly and it was called urgent. The signs were painted and they were simple, and the slogans were repeated again and again. He stood at the edge and he got unsure, even though he agreed with the message. The speeches were made and they were passionate, but they were also predictable and they were familiar. The crowd was loud and it was united for a moment. The police were watching and they were waiting. The march ended peacefully and it was called successful, but the change that was demanded was still distant and it was not guaranteed.`,
-
-`The relationship breakdown was not dramatic and it was not loud. The conversation was calm and it was careful, and the same sentences were used again and again. He said he understood and he said it again, even though he did not fully understand. The reasons were listed and they were reasonable, but they were also vague and repeated. The goodbye was short and it was controlled. The room felt smaller after that and it was strangely tidy, as if nothing had happened, even though everything had shifted.`,
-
-`The sporting failure was replayed on the screen and it was analysed from every angle. The mistake was small and it was quick, but it was repeated again and again in slow motion. He went over it in his head and he went over it again, which did not help. The coach was explaining and he was calm, but the tone was heavy. The comments online were harsh and they were simple. The next game was mentioned and it was framed as redemption, but the doubt from before was still present and it was not erased by one speech.`,
-
-`The public speech was prepared for weeks and it was revised every night. The notes were printed and they were highlighted, and the opening line was memorised. He walked to the podium and he got aware of every small sound. The microphone was adjusted and it was too loud at first. The words came out and they were steady, but they were also rehearsed and safe. The applause at the end was polite and it was brief. The message was delivered and it was clear, but it was not as powerful as it had seemed in practice.`,
-
-`The ethical dilemma was discussed in the board meeting and it was described as complex. The options were listed and they were weighed, but the same financial concern was repeated again and again. He said it was risky and he said it again, but the risk was framed as necessary. The vote was taken and it was close. The decision was made and it was justified, even though it did not sit comfortably. The minutes were recorded and they were formal, but the unease from earlier was not written down and it was not addressed properly.`,
-
-`The property dispute had been building quietly and it was finally spoken about openly. The documents were placed on the table and they were highlighted in bright ink. He read the clause and he read it again, but the meaning was still unclear and it was still frustrating. The lawyer was explaining and she was patient. The history of the agreement was repeated and it was repeated again. The handshake at the end was stiff and it was forced, and the tension remained even after the meeting had finished.`,
-
-`The media scandal broke suddenly and it was everywhere by morning. The headlines were bold and they were dramatic, and the statements were short and controlled. He watched the press conference and he watched it again, which did not make it clearer. The apology was delivered and it was rehearsed. The questions were sharp and they were persistent. The narrative was shaped quickly and it was repeated across every channel, but the truth behind it was still uncertain and it was not fully explored.`,
-
-`The unexpected resignation was announced in a short email and it was described as personal. The reasons were vague and they were careful, and the tone was neutral. He reread the message and he reread it again, which only made it feel more final. The office was quiet and it was tense. The farewell card was passed around and it was signed quickly. The departure was framed as positive, but the instability underneath was obvious and it was not resolved by polite words.`,
-
-`The failed launch was streamed live and it was meant to impress investors. The countdown was loud and it was dramatic, and the build up was repeated in every promotional clip. He watched the numbers and he watched them freeze, which was worse than an explosion. The explanation was given and it was technical. The blame was shifted and it was subtle. The promise of a retry was made and it was confident, but the doubt from that first failure was still present and it was difficult to ignore.`,
-
-`The hospital corridor was long and it was quiet in a way that felt serious. The doors were closed and they were identical, and the lights were too bright. He walked slowly and he got aware of every footstep. The diagnosis had been mentioned and it was mentioned again, but it was not fully explained. The doctor was speaking and he was careful. The words were simple and they were repeated, yet the meaning behind them was heavy and it was hard to accept.`,
-
-`The political rally was crowded and it was loud from the beginning. The slogans were shouted and they were shouted again, and the same phrases were repeated across the banners. He listened and he listened again, trying to decide what he actually believed. The promises were bold and they were simple. The cheers were strong and they were immediate. The speech ended with applause that was long and it was confident, but the policies behind the words were not explained deeply and they were not questioned either.`,
-
-`The legal dispute was described as straightforward and it was said to be clear cut. The evidence was presented and it was organised neatly, but it was also repeated. He read the transcript and he read it again, looking for something new. The judge was listening and he was neutral. The ruling was delivered and it was final. The relief in the room was obvious, but the cost of the process was not discussed and it was not reflected on carefully.`,
-
-`The team collapse happened slowly and it was not noticed at first. The small arguments were brushed off and they were ignored, and the same frustrations were repeated quietly. He tried to fix it and he tried again, but the effort was not matched. The meeting was called and it was tense. The blame was shared and it was vague. The final performance was weak and it was disappointing, and the reasons behind it were listed later but they were not truly understood.`,
-
-`The property auction was fast and it was louder than expected. The bids were called and they were rising quickly, and the numbers felt unreal. He raised his hand and he raised it again, even though the price was already high and it was risky. The hammer was lifted and it was paused for effect. The final call was made and it was decisive. The crowd clapped and it was celebratory, but the commitment that had just been made was heavy and it was not fully processed yet.`
-    ];
-
-    return ensureMinWords(paragraphs[i], 130, 'Senior');
-  }
-
-  function buildSeniorAnalytical(item, i){
-    // Year 10 Analytical — Strict TEAVIT structure
-    // Topic → Evidence/Technique → Analysis → Values/Beliefs → Takeaway
-
-    const sceneMap = {
-      "Macbeth": "In Act 1 he is called \"brave Macbeth\" and later he speaks about his \"vaulting ambition\" which is a metaphor.",
-      "Romeo and Juliet": "In the balcony scene Romeo says \"It is the east, and Juliet is the sun\" which is a metaphor.",
-      "The Crucible": "In the courtroom scene accusations are repeated and the word \"witch\" is used like a weapon.",
-      "Jasper Jones": "When Charlie discovers Laura’s body, tension is built through short description.",
-      "To Kill a Mockingbird": "During Tom Robinson’s trial the evidence is clear but it is ignored by the jury.",
-      "1984": "When Winston reads the forbidden book, slogans like \"War is Peace\" are repeated.",
-      "The Handmaid’s Tale": "The red clothing is used as a symbol and it is repeated to show control.",
-      "The Great Gatsby": "The green light is used as a symbol and it is mentioned again and again.",
-      "Frankenstein": "Victor creates the creature and responsibility is avoided afterwards.",
-      "The Hunger Games": "In the arena scenes the violence is broadcast and it is turned into entertainment.",
-      "The Hate U Give": "When Starr speaks at the protest her voice becomes central.",
-      "The Truman Show": "The constructed town is shown as perfect but it is controlled.",
-      "Gattaca": "DNA testing is shown as determining opportunity and it is treated as normal.",
-      "Dead Poets Society": "Mr Keating encourages students to stand on desks and see differently.",
-      "The Merchant of Venice": "Shylock’s courtroom speech questions fairness and prejudice.",
-      "Animal Farm": "The slogan \"All animals are equal\" is repeated and it changes meaning.",
-      "The Curious Incident of the Dog in the Night-Time": "Christopher narrates events logically and it shapes reader trust.",
-      "Othello": "Iago repeats lies and it is shown how jealousy is slowly created.",
-      "The Dressmaker": "The town gossip spreads quickly and it ruins reputations.",
-      "The Book Thief": "When Liesel reads in the bomb shelter, Death narrates the moment."
-    };
-
-    const topic = `The ${item.type} ${item.title} shows ${item.angle} and it is presented as significant within its context.`;
-    const evidence = sceneMap[item.title] || `In a key scene from ${item.title}, a technique is used and it supports the main idea.`;
-    const analysis = "This technique is effective and it shows how characters or ideas develop, but it is explained in a general way without deep insight.";
-    const values = "It reflects values and beliefs about society and it shows what happens when those beliefs are challenged or broken.";
-    const takeaway = "The audience can see that this idea matters and it becomes a warning about consequences in the wider world.";
-
-    const base = `${topic} ${evidence} ${analysis} ${values} ${takeaway}`;
-
-    return ensureMinWords(base, 130, 'Senior');
-  }
-
-  // Build the actual databank (20 per category)
-  const data = {
-    Narrative: {
-      Junior: juniorNarrativeThemes.map((t,i)=>buildJuniorNarrative(t,i)),
-      Senior: seniorNarrativeThemes.map((t,i)=>buildSeniorNarrative(t,i))
-    },
-    Analytical: {
-      Junior: juniorAnalyticalThemes.map((t,i)=>buildJuniorAnalytical(t,i)),
-      Senior: seniorAnalyticalThemes.map((t,i)=>buildSeniorAnalytical(t,i))
-    }
-  };
-
-  // -----------------------------
-  // Highlighter
-  // -----------------------------
-  const NOUN_STARTS = new Set(["the","it","a","an","he","she","his","her","this","these","those","they","then","there"]);
-  const STOP_WORDS  = new Set(["and","but","so","then","just","really"]);
-  const BASIC_WORDS = new Set([
-    "got","get","gets","getting",
-    "went","go","goes","going",
-    "ran","run","runs","running",
-    "saw","see","sees","seeing",
-    "looked","look","looks","looking",
-    "show","shows","showing",
-    "say","says","said",
-    "make","makes","made","making",
-    "big","small","nice","good","bad","things","stuff"
-  ]);
-  const AUX_WORDS   = new Set(["was","were","is","are","be","been","being","has","have","had"]);
-
-  function escapeHtml(s) {
-    return s
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function highlightText(raw) {
-    if (!raw) return "";
-
-    const sentences = raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [raw];
-    let out = "";
-    let lastKey = new Set();
-
-    for (const sent of sentences) {
-      const s = sent.trim();
-      if (!s) continue;
-
-      const firstWordMatch = s.match(/^[A-Za-z']+/);
-      const firstWord = firstWordMatch ? firstWordMatch[0] : "";
-
-      const tokens = s.match(/[A-Za-z0-9']+|[^A-Za-z0-9' ]/g) || [];
-      const currentKey = new Set();
-
-      const rebuilt = tokens.map((tok, idx) => {
-        const isWord = /^[A-Za-z0-9']+$/.test(tok);
-        if (!isWord) return escapeHtml(tok);
-
-        const low = tok.toLowerCase();
-        const htmlTok = escapeHtml(tok);
-
-        // Blue: weak start word only
-        if (idx === 0 && firstWord && NOUN_STARTS.has(firstWord.toLowerCase()) && low === firstWord.toLowerCase()) {
-          return `<span class=\"hl-noun\">${htmlTok}</span>`;
-        }
-
-        // Yellow: stop words
-        if (STOP_WORDS.has(low)) return `<span class=\"hl-stop\">${htmlTok}</span>`;
-
-        // Green: basic words
-        if (BASIC_WORDS.has(low)) return `<span class=\"hl-basic\">${htmlTok}</span>`;
-
-        // Red: auxiliaries (proxy for passive-heavy writing)
-        if (AUX_WORDS.has(low)) return `<span class=\"hl-passive\">${htmlTok}</span>`;
-
-        // Purple: repetition across adjacent sentences
-        if (low.length >= 6 && !STOP_WORDS.has(low) && !AUX_WORDS.has(low)) {
-          currentKey.add(low);
-          if (lastKey.has(low)) return `<span class=\"hl-repeat\">${htmlTok}</span>`;
-        }
-
-        return htmlTok;
-      }).join(" ").replace(/ +([,.!?;:])/g, "$1");
-
-      lastKey = currentKey;
-      out += rebuilt + " ";
-    }
-
-    return out.trim();
-  }
-
-  // -----------------------------
-  // Render + UI
-  // -----------------------------
-  function render(){
-    document.getElementById('jrContent').innerHTML = highlightText(data[currentMode].Junior[index]);
-    document.getElementById('srContent').innerHTML = highlightText(data[currentMode].Senior[index]);
-    document.getElementById('stats').innerText = `${currentMode} • Example ${index+1} / ${data[currentMode].Junior.length}`;
-  }
-
-  // Mode switch
-  Array.from(document.querySelectorAll('.mode-btn')).forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('bg-blue-600','text-white'));
-      btn.classList.add('bg-blue-600','text-white');
-      currentMode = btn.innerText;
-      index = 0;
-      render();
-    });
+  return out.trim();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function getPool(level, mode){
+  if(mode === 'Narrative') return data.Narrative[level];
+  return data.Analytical[level];
+}
+
+function render(){
+  const jrPool = getPool('Junior', modes.Junior);
+  const srPool = getPool('Senior', modes.Senior);
+  const i = index % Math.min(jrPool.length, srPool.length);
+
+  document.getElementById('jrContent').innerHTML = highlightText(jrPool[i]);
+  document.getElementById('srContent').innerHTML = highlightText(srPool[i]);
+
+  const total = Math.min(jrPool.length, srPool.length);
+  document.getElementById('stats').textContent = `Example ${i + 1} of ${total}`;
+}
+
+function setMode(level, mode){
+  modes[level] = mode;
+  // Update button states for that level
+  document.querySelectorAll(`[data-level="${level}"]`).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
   });
+  render();
+}
 
-  // Navigation
-  document.getElementById('btnNext').onclick = ()=>{ index=(index+1)%data[currentMode].Junior.length; render(); };
-  document.getElementById('btnPrev').onclick = ()=>{ index=(index-1+data[currentMode].Junior.length)%data[currentMode].Junior.length; render(); };
-  document.getElementById('btnRandom').onclick = ()=>{ index=Math.floor(Math.random()*data[currentMode].Junior.length); render(); };
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.level, btn.dataset.mode));
+});
 
-  // Theme
-  document.getElementById('themeToggle').onclick = ()=>{
-    document.documentElement.classList.toggle('dark');
-  };
+// Set initial active states
+setMode('Junior', 'Narrative');
+setMode('Senior', 'Narrative');
 
-  // -----------------------------
-  // Tests (console)
-  // -----------------------------
-  function assert(cond, msg){
-    if (!cond) throw new Error(msg);
-  }
+const poolSize = () => Math.min(getPool('Junior', modes.Junior).length, getPool('Senior', modes.Senior).length);
+document.getElementById('btnNext').onclick   = () => { index = (index + 1) % poolSize(); render(); };
+document.getElementById('btnPrev').onclick   = () => { index = (index - 1 + poolSize()) % poolSize(); render(); };
+document.getElementById('btnRandom').onclick = () => { index = Math.floor(Math.random() * poolSize()); render(); };
+document.getElementById('themeToggle').onclick = () => document.documentElement.classList.toggle('dark');
 
-  function runTests(){
-    console.group('Expression Sharpener Tests');
-
-    assert(data.Narrative.Junior.length === 20, 'Expected 20 Junior Narrative');
-    assert(data.Analytical.Junior.length === 20, 'Expected 20 Junior Analytical');
-    assert(data.Narrative.Senior.length === 20, 'Expected 20 Senior Narrative');
-    assert(data.Analytical.Senior.length === 20, 'Expected 20 Senior Analytical');
-
-    // Word-count tests
-    data.Narrative.Junior.forEach((t, i)=>assert(wordCount(t) >= 70, `Junior Narrative ${i+1} below 70 words`));
-    data.Analytical.Junior.forEach((t, i)=>{
-      assert(wordCount(t) >= 70, `Junior Analytical ${i+1} below 70 words`);
-      const anyTitle = juniorAnalyticalThemes.some(x => t.includes(x.title));
-      assert(anyTitle, `Junior Analytical ${i+1} does not reference a real text title`);
-    });
-    data.Narrative.Senior.forEach((t, i)=>assert(wordCount(t) >= 130, `Senior Narrative ${i+1} below 130 words`));
-    data.Analytical.Senior.forEach((t, i)=>{
-      assert(wordCount(t) >= 130, `Senior Analytical ${i+1} below 130 words`);
-      const anyTitle = seniorAnalyticalThemes.some(x => t.includes(x.title));
-      assert(anyTitle, `Senior Analytical ${i+1} does not reference a real text title`);
-    });
-
-    // Highlighter smoke test
-    const sample = highlightText('The dog was big and it was nice.');
-    assert(sample.includes('hl-noun') && sample.includes('hl-passive') && sample.includes('hl-basic') && sample.includes('hl-stop'), 'Highlighter did not tag expected classes');
-
-    // Ensure senior analytical includes at least one concrete scene marker
-    const sceneMarkers = ['balcony scene','act 2','courtroom scene','trial','forbidden book','green light','bomb shelter'];
-    const anyScene = data.Analytical.Senior.some(p => sceneMarkers.some(m => p.toLowerCase().includes(m)));
-    assert(anyScene, 'Expected at least one Senior Analytical exemplar to reference a concrete scene marker');
-
-    console.log('All tests passed.');
-    console.groupEnd();
-  }
-
-  // -----------------------------
-  // Boot
-  // -----------------------------
-  // Important: call initIconsSafe() AFTER the DOM is parsed, and never assume Lucide loaded.
-  document.addEventListener('DOMContentLoaded', () => {
-    initIconsSafe();
-    runTests();
-    render();
-  });
+try {
+  if(window.lucide) window.lucide.createIcons();
+} catch(_){}
 </script>
-
 </body>
 </html>
